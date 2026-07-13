@@ -48,27 +48,34 @@
   details summary::before { content: "\25B8 "; }
   details[open] summary::before { content: "\25BE "; }
 
-  /* steppers */
+  /* setup steppers (settings only) */
   .step { display: inline-flex; align-items: center; gap: 2px; }
-  .step button {
-    width: 34px; height: 38px; border: 1px solid var(--ring); background: var(--card2);
-    color: var(--ink2); border-radius: 8px; font-size: 19px; font-weight: 700; font-family: inherit;
-  }
-  .step .v { min-width: 44px; text-align: center; font-size: 21px; font-weight: 800;
-             font-variant-numeric: tabular-nums; }
-  .small .v { min-width: 27px; font-size: 15px; }
-  .small button { width: 23px; height: 30px; font-size: 15px; border-radius: 6px; }
+  .small .v { min-width: 44px; text-align: center; font-size: 15px; font-weight: 800;
+              font-variant-numeric: tabular-nums; }
+  .small button { width: 28px; height: 30px; font-size: 15px; border-radius: 6px;
+                  border: 1px solid var(--ring); background: var(--card2);
+                  color: var(--ink2); font-weight: 700; font-family: inherit; }
 
   /* scoreboard */
-  table.sc { width: 100%; border-collapse: collapse; }
-  table.sc th { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
-                color: var(--ink3); font-weight: 700; padding: 2px 2px 6px; text-align: center; }
-  table.sc th:first-child { text-align: left; }
-  table.sc td { padding: 4px 0; text-align: center; }
-  table.sc td.nm { text-align: left; font-weight: 800; font-size: 14px; max-width: 56px; padding-right: 2px;
-                   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .srv { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--ring);
-         background: var(--card2); font-size: 13px; }
+  .sb { display: grid; gap: 8px; }
+  .sbrow { display: grid; grid-template-columns: 1fr 34px 46px 46px 56px; gap: 7px; align-items: center; }
+  .sbhead { display: grid; grid-template-columns: 1fr 34px 46px 46px 56px; gap: 7px;
+            font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--ink3); font-weight: 700; text-align: center; }
+  .sbhead span:first-child { text-align: left; }
+  .sbnm { font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis;
+          white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+  .sbnm::before { content: ""; width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .sbnm.a::before { background: var(--pA); } .sbnm.b::before { background: var(--pB); }
+  .cell { height: 46px; border-radius: 9px; background: var(--card2); border: 1px solid var(--ring);
+          color: var(--ink); font-size: 20px; font-weight: 800; font-family: inherit;
+          font-variant-numeric: tabular-nums; touch-action: manipulation; user-select: none;
+          -webkit-user-select: none; padding: 0; }
+  .cell:active { background: #2c2c2a; }
+  .cell.pts { color: var(--h3); }
+  .srv { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--ring);
+         background: var(--card2); font-size: 14px; margin: 0 auto; display: block;
+         touch-action: manipulation; }
   .srv.on { background: var(--h3); border-color: var(--h3); }
 
   /* result */
@@ -139,23 +146,23 @@
 
   <div class="card">
     <div class="lab" id="scLab"></div>
-    <table class="sc">
-      <tr><th></th><th id="thSrv"></th><th id="thSets"></th><th id="thGames"></th><th id="thPts"></th></tr>
-      <tr>
-        <td class="nm" id="scNameA"></td>
-        <td><button class="srv" id="srvA">&#127934;</button></td>
-        <td><span class="step small"><button data-s="setsA" data-d="-1">&minus;</button><span class="v" id="vSetsA"></span><button data-s="setsA" data-d="1">+</button></span></td>
-        <td><span class="step small"><button data-s="gamesA" data-d="-1">&minus;</button><span class="v" id="vGamesA"></span><button data-s="gamesA" data-d="1">+</button></span></td>
-        <td><span class="step small"><button data-s="ptsA" data-d="-1">&minus;</button><span class="v" id="vPtsA"></span><button data-s="ptsA" data-d="1">+</button></span></td>
-      </tr>
-      <tr>
-        <td class="nm" id="scNameB"></td>
-        <td><button class="srv" id="srvB">&#127934;</button></td>
-        <td><span class="step small"><button data-s="setsB" data-d="-1">&minus;</button><span class="v" id="vSetsB"></span><button data-s="setsB" data-d="1">+</button></span></td>
-        <td><span class="step small"><button data-s="gamesB" data-d="-1">&minus;</button><span class="v" id="vGamesB"></span><button data-s="gamesB" data-d="1">+</button></span></td>
-        <td><span class="step small"><button data-s="ptsB" data-d="-1">&minus;</button><span class="v" id="vPtsB"></span><button data-s="ptsB" data-d="1">+</button></span></td>
-      </tr>
-    </table>
+    <div class="sb">
+      <div class="sbhead"><span></span><span id="thSrv"></span><span id="thSets"></span><span id="thGames"></span><span id="thPts"></span></div>
+      <div class="sbrow">
+        <span class="sbnm a" id="scNameA"></span>
+        <button class="srv" id="srvA">&#127934;</button>
+        <button class="cell" data-c="sets" data-p="A" id="vSetsA"></button>
+        <button class="cell" data-c="games" data-p="A" id="vGamesA"></button>
+        <button class="cell pts" data-c="pts" data-p="A" id="vPtsA"></button>
+      </div>
+      <div class="sbrow">
+        <span class="sbnm b" id="scNameB"></span>
+        <button class="srv" id="srvB">&#127934;</button>
+        <button class="cell" data-c="sets" data-p="B" id="vSetsB"></button>
+        <button class="cell" data-c="games" data-p="B" id="vGamesB"></button>
+        <button class="cell pts" data-c="pts" data-p="B" id="vPtsB"></button>
+      </div>
+    </div>
   </div>
 
   <div class="card hero">
@@ -191,7 +198,7 @@ import * as E from "./engine.js";
 const I18N = {
   en: {
     setup: "Players & settings", srvA: "Serve strength", srvB: "Serve strength",
-    bo: "Best of", score: "Current score — tap to set", srv: "Serve",
+    bo: "Best of", score: "Current score — tap a number, hold to go back", srv: "Serve",
     sets: "Sets", games: "Games", pts: "Points",
     hero: "This point is worth", multSub: "of an average point between these two",
     ifWins: "if {n} wins it", pt: "Point", undo: "Undo", reset: "New match",
@@ -201,7 +208,7 @@ const I18N = {
   },
   it: {
     setup: "Giocatori e impostazioni", srvA: "Forza al servizio", srvB: "Forza al servizio",
-    bo: "Al meglio di", score: "Punteggio attuale — tocca per impostare", srv: "Servizio",
+    bo: "Al meglio di", score: "Punteggio attuale — tocca un numero, tieni premuto per tornare indietro", srv: "Servizio",
     sets: "Set", games: "Game", pts: "Punti",
     hero: "Questo punto vale", multSub: "di un punto medio tra questi due",
     ifWins: "se lo vince {n}", pt: "Punto", undo: "Annulla", reset: "Nuova partita",
@@ -345,14 +352,55 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   cfg.st[k] = cfg[k];
   render();
 });
-document.querySelectorAll("[data-s]").forEach(b => b.onclick = () => {
-  const k = b.dataset.s, d = parseInt(b.dataset.d);
-  const wasTb = E.inTiebreak(cfg.st);
-  cfg.st[k] += d;
-  if (E.inTiebreak(cfg.st) !== wasTb) { cfg.st.ptsA = 0; cfg.st.ptsB = 0; }
-  clampState(cfg.st);
+/* tap = next valid value, hold = previous. Cycles wrap. */
+function validList(field, p, s) {
+  const other = field === "sets" ? (p === "A" ? s.setsB : s.setsA)
+              : field === "games" ? (p === "A" ? s.gamesB : s.gamesA)
+              : (p === "A" ? s.ptsB : s.ptsA);
+  if (field === "sets") {
+    const need = E.setsToWin(s);
+    return Array.from({length: need}, (_, i) => i);
+  }
+  if (field === "games") {
+    const out = [];
+    for (let x = 0; x <= 6; x++)
+      if (!((x >= 6 || other >= 6) && Math.abs(x - other) >= 2)) out.push(x);
+    return out;
+  }
+  if (E.inTiebreak(s)) return Array.from({length: 25}, (_, i) => i);
+  if (other === 4) return [3];                      // opponent has Ad
+  const out = [0, 1, 2, 3];
+  if (other === 3) out.push(4);                     // Ad only vs 40
+  return out;
+}
+
+function cycle(field, p, dir) {
+  const s = cfg.st;
+  const key = field + p;
+  const wasTb = E.inTiebreak(s);
+  const list = validList(field, p, s);
+  let i = list.indexOf(s[key]);
+  if (i < 0) i = 0;
+  s[key] = list[(i + dir + list.length) % list.length];
+  if (E.inTiebreak(s) !== wasTb) { s.ptsA = 0; s.ptsB = 0; }
+  clampState(s);
   cfg.hist = [];
   render();
+}
+
+document.querySelectorAll(".cell").forEach(b => {
+  const field = b.dataset.c, p = b.dataset.p;
+  let timer = null, held = false;
+  b.addEventListener("pointerdown", () => {
+    held = false;
+    timer = setTimeout(() => { held = true; cycle(field, p, -1); }, 450);
+  });
+  b.addEventListener("pointerup", () => {
+    clearTimeout(timer);
+    if (!held) cycle(field, p, 1);
+  });
+  b.addEventListener("pointerleave", () => clearTimeout(timer));
+  b.addEventListener("contextmenu", e => e.preventDefault());
 });
 $("srvA").onclick = () => { cfg.st.server = "A"; render(); };
 $("srvB").onclick = () => { cfg.st.server = "B"; render(); };
