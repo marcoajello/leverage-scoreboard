@@ -105,6 +105,22 @@
   .uc { display: flex; gap: 10px; margin-top: 10px; }
   .uc button { flex: 1; background: var(--card2); border: 1px solid var(--ring); color: var(--ink2);
                border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 700; font-family: inherit; }
+  .meaning { font-size: 12px; color: var(--h2); margin-top: 8px; font-weight: 600; min-height: 15px; }
+  .hero { position: relative; }
+  .info { position: absolute; top: 10px; right: 12px; width: 26px; height: 26px; border-radius: 50%;
+          border: 1px solid var(--ring); background: var(--card2); color: var(--ink2);
+          font-size: 13px; font-weight: 800; font-family: inherit; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 20;
+           display: flex; align-items: center; justify-content: center; padding: 18px; }
+  .mbox { background: var(--card); border: 1px solid var(--ring); border-radius: 14px;
+          padding: 18px; max-width: 420px; max-height: 80vh; overflow-y: auto; }
+  .mbox h3 { margin: 0 0 10px; font-size: 15px; }
+  .mbox p { font-size: 13.5px; line-height: 1.6; color: var(--ink2); margin: 0 0 12px; }
+  .mbox strong { color: var(--ink); }
+  .mbox em { color: var(--h3); font-style: normal; font-weight: 700; }
+  .mbox button { width: 100%; padding: 12px; border: none; border-radius: 10px;
+                 background: var(--h1); color: #0d0d0d; font-size: 14px; font-weight: 800;
+                 font-family: inherit; }
   .champ { text-align: center; font-size: 20px; font-weight: 800; color: var(--h3); padding: 8px 0 2px; }
   footer { font-size: 10.5px; color: var(--ink3); text-align: center; line-height: 1.5; padding: 4px 10px; }
   footer a { color: var(--ink2); }
@@ -166,11 +182,14 @@
   </div>
 
   <div class="card hero">
+    <button class="info" id="infoBtn" aria-label="What the numbers mean">?</button>
     <div class="lab" id="heroLab"></div>
     <div class="champ" id="champ" style="display:none"></div>
     <div class="mult" id="mult">1.0&times;</div>
     <div class="sub" id="multSub"></div>
-    <div class="bar"><div class="a" id="barA" style="width:50%"></div><div class="b" id="barB" style="width:50%"></div></div>
+    <div class="meaning" id="multMeaning"></div>
+    <div class="lab" id="wpLab" style="margin-top:16px;margin-bottom:6px"></div>
+    <div class="bar" style="margin-top:0"><div class="a" id="barA" style="width:50%"></div><div class="b" id="barB" style="width:50%"></div></div>
     <div class="nums"><span class="na" id="numA">50.0</span><span class="nb" id="numB">50.0</span></div>
     <div class="branches">
       <div class="br"><div class="t" id="brALab"></div><div class="v" id="brA"></div><div class="d" id="brAd"></div></div>
@@ -190,6 +209,13 @@
   </div>
 
   <footer id="foot"></footer>
+  <div class="modal" id="infoModal" style="display:none">
+    <div class="mbox">
+      <h3 id="infoTitle"></h3>
+      <div id="infoBody"></div>
+      <button id="infoClose"></button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -201,8 +227,21 @@ const I18N = {
     bo: "Best of", score: "Current score — tap a number, hold to go back", srv: "Serve",
     sets: "Sets", games: "Games", pts: "Points",
     hero: "This point is worth", multSub: "of an average point between these two",
-    ifWins: "if {n} wins it", pt: "Point", undo: "Undo", reset: "New match",
+    ifWins: "if {n} wins this point", pt: "Point", undo: "Undo", reset: "New match",
     champion: "{n} wins the match",
+    wpLab: "Chance to win the match",
+    chance: "match chance after this point",
+    meaning_low: "Low stakes — losing this point costs almost nothing",
+    meaning_normal: "An ordinary point",
+    meaning_important: "An important point — worth extra care",
+    meaning_big: "A big point — the match moves on this",
+    meaning_huge: "A huge point — the match can swing right here",
+    infoTitle: "What the numbers mean",
+    infoClose: "Got it",
+    infoBody: `<p><strong>The multiplier (&times;)</strong> — every point is compared with an average point of a match between these two players. <em>1.0&times;</em> is an ordinary point; <em>6&times;</em> means this point moves the match six times more than usual. It is computed exactly from the score — no guesswork.</p>
+<p><strong>The bar</strong> — each player's current chance of winning the whole match, given the score and the serve strengths.</p>
+<p><strong>The two boxes</strong> — what each player's chance becomes if <em>they</em> win the next point, and how many percentage points they gain (+).</p>
+<p><strong>Serve strength</strong> (in settings) — how often a player wins a point on their own serve. Top pro men &asymp; 64%, top pro women &asymp; 57%, solid club players &asymp; 55%. For an even friendly match, just leave both the same.</p>`,
     foot: "Leverage = win-probability swing of the next point, computed exactly from the score (Morris 1977). Part of the <a href='../'>Leverage Scoreboard</a> project.",
     playerA: "Player A", playerB: "Player B",
   },
@@ -211,14 +250,28 @@ const I18N = {
     bo: "Al meglio di", score: "Punteggio attuale — tocca un numero, tieni premuto per tornare indietro", srv: "Servizio",
     sets: "Set", games: "Game", pts: "Punti",
     hero: "Questo punto vale", multSub: "di un punto medio tra questi due",
-    ifWins: "se lo vince {n}", pt: "Punto", undo: "Annulla", reset: "Nuova partita",
+    ifWins: "se {n} vince questo punto", pt: "Punto", undo: "Annulla", reset: "Nuova partita",
     champion: "{n} vince la partita",
+    wpLab: "Probabilità di vincere la partita",
+    chance: "probabilità dopo questo punto",
+    meaning_low: "Posta bassa — perdere questo punto costa quasi nulla",
+    meaning_normal: "Un punto ordinario",
+    meaning_important: "Un punto importante — merita attenzione",
+    meaning_big: "Un punto grosso — la partita si muove qui",
+    meaning_huge: "Un punto enorme — la partita può girare proprio qui",
+    infoTitle: "Cosa significano i numeri",
+    infoClose: "Capito",
+    infoBody: `<p><strong>Il moltiplicatore (&times;)</strong> — ogni punto è confrontato con un punto medio di una partita tra questi due giocatori. <em>1,0&times;</em> è un punto ordinario; <em>6&times;</em> significa che questo punto sposta la partita sei volte più del solito. È calcolato esattamente dal punteggio — niente supposizioni.</p>
+<p><strong>La barra</strong> — la probabilità attuale di ciascun giocatore di vincere l'intera partita, dati il punteggio e la forza al servizio.</p>
+<p><strong>I due riquadri</strong> — quale diventa la probabilità di ciascuno se è <em>lui</em> a vincere il prossimo punto, e quanti punti percentuali guadagna (+).</p>
+<p><strong>Forza al servizio</strong> (nelle impostazioni) — quanto spesso un giocatore vince un punto al proprio servizio. Professionisti &asymp; 64%, professioniste &asymp; 57%, buoni giocatori di circolo &asymp; 55%. Per una partita alla pari, lasciate entrambi uguali.</p>`,
     foot: "Leva = oscillazione della probabilità di vittoria sul prossimo punto, calcolata esattamente dal punteggio (Morris 1977). Parte del progetto <a href='../it/'>Leverage Scoreboard</a>.",
     playerA: "Giocatore A", playerB: "Giocatore B",
   },
 };
 
 const HEAT = m => m >= 6 ? "#ffc233" : m >= 3 ? "#eda100" : m >= 1.2 ? "#c98500" : "#8a7440";
+const MEANING = m => m >= 6 ? "meaning_huge" : m >= 3 ? "meaning_big" : m >= 1.5 ? "meaning_important" : m >= 0.6 ? "meaning_normal" : "meaning_low";
 const $ = id => document.getElementById(id);
 
 let cfg = JSON.parse(localStorage.getItem("levscore") || "null") || {
@@ -278,6 +331,9 @@ function render() {
   $("heroLab").textContent = T("hero");
   $("undo").textContent = T("undo"); $("reset").textContent = T("reset");
   $("foot").innerHTML = T("foot");
+  $("infoTitle").textContent = T("infoTitle");
+  $("infoBody").innerHTML = T("infoBody");
+  $("infoClose").textContent = T("infoClose");
   $("nameA").placeholder = T("playerA"); $("nameB").placeholder = T("playerB");
   if (document.activeElement !== $("nameA")) $("nameA").value = cfg.nameA;
   if (document.activeElement !== $("nameB")) $("nameB").value = cfg.nameB;
@@ -310,6 +366,8 @@ function render() {
     $("brA").textContent = "–"; $("brB").textContent = "–";
     $("brALab").textContent = ""; $("brBLab").textContent = "";
     $("brAd").textContent = ""; $("brBd").textContent = "";
+    $("multMeaning").textContent = "";
+    $("wpLab").textContent = T("wpLab");
     $("ptA").disabled = $("ptB").disabled = true;
     save();
     return;
@@ -324,10 +382,12 @@ function render() {
   $("mult").textContent = mult.toFixed(1) + "×";
   $("mult").style.color = HEAT(mult);
   $("multSub").textContent = T("multSub");
+  $("multMeaning").textContent = T(MEANING(mult));
+  $("wpLab").textContent = T("wpLab");
   $("barA").style.width = (wp * 100) + "%";
   $("barB").style.width = (100 - wp * 100) + "%";
-  $("numA").textContent = (wp * 100).toFixed(1);
-  $("numB").textContent = (100 - wp * 100).toFixed(1);
+  $("numA").textContent = (wp * 100).toFixed(1) + "%";
+  $("numB").textContent = (100 - wp * 100).toFixed(1) + "%";
 
   const wA = E.winProb(E.pointWon(s, "A"));
   const wB = E.winProb(E.pointWon(s, "B"));
@@ -335,13 +395,16 @@ function render() {
   $("brBLab").textContent = T("ifWins").replace("{n}", nm("B"));
   $("brA").textContent = (wA * 100).toFixed(1) + "%";
   $("brB").textContent = ((1 - wB) * 100).toFixed(1) + "%";
-  $("brAd").textContent = `${nm("A")} +${((wA - wp) * 100).toFixed(1)}`;
-  $("brBd").textContent = `${nm("B")} +${((wp - wB) * 100).toFixed(1)}`;
+  $("brAd").textContent = `${T("chance")} (+${((wA - wp) * 100).toFixed(1)})`;
+  $("brBd").textContent = `${T("chance")} (+${((wp - wB) * 100).toFixed(1)})`;
   save();
 }
 
 /* ---- events ---- */
 $("langBtn").onclick = () => { cfg.lang = cfg.lang === "en" ? "it" : "en"; render(); };
+$("infoBtn").onclick = () => { $("infoModal").style.display = "flex"; };
+$("infoClose").onclick = () => { $("infoModal").style.display = "none"; };
+$("infoModal").onclick = e => { if (e.target === $("infoModal")) $("infoModal").style.display = "none"; };
 $("nameA").oninput = e => { cfg.nameA = e.target.value; render(); };
 $("nameB").oninput = e => { cfg.nameB = e.target.value; render(); };
 $("bo3").onclick = () => { cfg.bestOf = 3; cfg.st.bestOf = 3; clampState(cfg.st); render(); };
