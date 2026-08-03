@@ -102,14 +102,16 @@
   .lvz .bnr .bscore .srv { color: var(--heat-3); }
   .lvz .bnr .bscore .vs { color: var(--ink-3); font-weight: 400; }
   .lvz .bnr .bmult { font-weight: 800; font-size: 14px; flex: none; }
-  .lvz .bnr .btog { background: none; border: none; color: var(--ink-3); cursor: pointer;
-    font-size: 11px; padding: 2px 4px; font-family: inherit; flex: none; }
+  .lvz .bnr .btog { background: none; border: none; color: var(--ink-2); cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 4px 10px; font-family: inherit; flex: none; }
+  .lvz .bnr .btog:hover { color: var(--heat-3); }
   .lvz .bnr .bdetail { max-width: 960px; margin: 0 auto; padding: 2px 0 10px;
     display: flex; flex-direction: column; gap: 7px; }
   .lvz .bnr .drow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
     gap: 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
-  .lvz .bnr .drow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
-  .lvz .bnr .drow.serving .ddot { visibility: visible; background: var(--heat-3); }
+  .lvz .bnr .drow .ddot { width: 14px; visibility: hidden; font-size: 10px; line-height: 1; }
+  .lvz .bnr .drow.serving .ddot { visibility: visible; }
+  .lvz .bnr .drow.serving .ddot::before { content: "\01F3BE"; }
   .lvz .bnr .drow .dname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lvz #bnRowA .dname, .lvz #mRowA .mname { color: var(--pA); }
   .lvz #bnRowB .dname, .lvz #mRowB .mname { color: var(--pB); }
@@ -164,8 +166,9 @@
     letter-spacing: 0; text-transform: none; }
   .lvz.pip .mrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
     gap: 8px; font-variant-numeric: tabular-nums; }
-  .lvz.pip .mrow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
-  .lvz.pip .mrow.serving .ddot { visibility: visible; background: var(--heat-3); }
+  .lvz.pip .mrow .ddot { width: 14px; visibility: hidden; font-size: 10px; line-height: 1; }
+  .lvz.pip .mrow.serving .ddot { visibility: visible; }
+  .lvz.pip .mrow.serving .ddot::before { content: "\01F3BE"; }
   .lvz.pip .mrow .mname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lvz.pip .mrow .mcells { display: flex; gap: 4px; }
   .lvz.pip .mrow .mcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
@@ -204,8 +207,11 @@
     font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;
   }
   .lvz .prow { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 6px 0; }
-  .lvz .prow .dot { width: 8px; height: 8px; border-radius: 50%; visibility: hidden; }
-  .lvz .prow.serving .dot { visibility: visible; background: var(--heat-3); }
+  .lvz .prow .dot { width: 12px; visibility: hidden; font-size: 11px; line-height: 1; }
+  .lvz .prow.serving .dot { visibility: visible; }
+  .lvz .prow.serving .dot::before { content: "\01F3BE"; }
+  .lvz .prow.pa .name .nm { color: var(--pA); }
+  .lvz .prow.pb .name .nm { color: var(--pB); }
   .lvz .prow .name { font-size: clamp(16px, 2.6vw, 21px); font-weight: 700; letter-spacing: 0.01em; display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; }
   .lvz .prow .name .nm { overflow: hidden; text-overflow: ellipsis; }
   .lvz .prow .name::before { content: ""; width: 10px; height: 10px; border-radius: 2px; flex: none; }
@@ -318,7 +324,7 @@
       </span>
       <span class="bscore" id="bnScore"></span>
       <span class="bmult" id="bnMult"></span>
-      <button class="btog" id="bnTog" aria-label="Expand or collapse live detail">&#9662;</button>
+      <button class="btog" id="bnTog" aria-label="Expand or collapse live detail">&#9660;</button>
     </div>
     <div class="bdetail" id="bnDetail" style="display:none">
       <div class="drow" id="bnRowA"><span class="ddot"></span><span class="dname" id="bnNameA"></span><span class="dcells" id="bnCellsA"></span></div>
@@ -1023,9 +1029,10 @@ function updateBanner() {
   const setsStr = sets.map(s => `${s[0]}\u2013${s[1]}`).join(" ");
   const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
   const srvA = st.server === "A";
+  const ball = "\uD83C\uDFBE";
   $("bnScore").innerHTML =
-    `<span class="${srvA ? "srv" : ""}">${A}</span> <span class="vs">v</span> ` +
-    `<span class="${srvA ? "" : "srv"}">${B}</span>&ensp;` +
+    `<span style="color:var(--pA)">${srvA ? ball + "\u2009" : ""}${A}</span> <span class="vs">v</span> ` +
+    `<span style="color:var(--pB)">${srvA ? "" : ball + "\u2009"}${B}</span>&ensp;` +
     `<span class="vs">${setsStr}${setsStr ? " \u00b7 " : ""}${st.games[0]}\u2013${st.games[1]} ${call[0]}\u2013${call[1]}</span>`;
   const mult = m.meanLev > 0 ? st.lev_next / m.meanLev : 1;
   $("bnMult").textContent = m.snap.live ? mult.toFixed(1) + "\u00d7" : "final";
@@ -1042,7 +1049,7 @@ function updateBanner() {
     `serve form ${(st.srvA * 100).toFixed(1)} / ${(st.srvB * 100).toFixed(1)}` +
     (m.snap.live ? "" : " \u00b7 feed ended");
   $("bnDetail").style.display = bnrOpen ? "" : "none";
-  $("bnTog").innerHTML = bnrOpen ? "&#9652;" : "&#9662;";
+  $("bnTog").innerHTML = bnrOpen ? "&#9650;" : "&#9660;";
 }
 
 $("bnRow").onclick = () => {
