@@ -121,8 +121,9 @@
     gap: 1px; background: var(--page); }
   .lvz .bnr .dwp .a { background: var(--pA); }
   .lvz .bnr .dwp .b { background: var(--pB); }
-  .lvz .bnr .dmeta { display: flex; align-items: center; justify-content: space-between;
+  .lvz .bnr .dmeta { display: flex; align-items: center;
     gap: 8px; font-size: 11px; color: var(--ink-3); flex-wrap: wrap; }
+  .lvz .bnr .dmeta .dbtns { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
   .lvz .bnr .dmeta button {
     background: var(--card-2); border: 1px solid var(--ring); color: var(--ink);
     border-radius: 5px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit;
@@ -323,9 +324,11 @@
       <div class="dwp"><div class="a" id="bnWpA" style="width:50%"></div><div class="b" id="bnWpB" style="width:50%"></div></div>
       <div class="dmeta">
         <span id="bnMeta"></span>
-        <button id="bnOpen">Open full view</button>
-        <button id="bnPop">Pop out</button>
-        <button id="bnOv">Overlay</button>
+        <span class="dbtns">
+          <button id="bnOpen">Open full view</button>
+          <button id="bnPop">Pop out</button>
+          <button id="bnOv">Overlay</button>
+        </span>
       </div>
     </div>
   </div>
