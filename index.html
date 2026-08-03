@@ -327,7 +327,6 @@
         <span class="dbtns">
           <button id="bnOpen">Open full view</button>
           <button id="bnPop">Pop out</button>
-          <button id="bnOv">Overlay</button>
         </span>
       </div>
     </div>
@@ -1057,12 +1056,6 @@ $("bnPop").onclick = ev => {
   if (!m) return;
   window.open(location.pathname + "?mini=1&match=" + m.id, "lvzmini",
               "popup=yes,width=330,height=240");
-};
-$("bnOv").onclick = ev => {
-  ev.stopPropagation();
-  const m = MATCHES["stream"];
-  if (!m) return;
-  window.open(location.pathname + "?overlay=1&match=" + m.id, "_blank");
 };
 $("bnOpen").onclick = ev => {
   ev.stopPropagation();
