@@ -1106,8 +1106,9 @@ function renderBoardOptions() {
   $("liveSel").innerHTML = rows.map(x => {
     const susp = !!x.event_status;   // e.g. Interrupted: rain, darkness
     const tag = susp ? ` \u00b7 ${(x.event_status || "suspended").toLowerCase()}` : "";
-    // native macOS/iOS dropdowns ignore option CSS \u2014 a red symbol survives
-    const mark = susp ? "\ud83d\udd34 " : "";
+    // native macOS/iOS dropdowns ignore option CSS \u2014 symbols survive:
+    // green = ball in play, red = interrupted (rain/darkness/medical)
+    const mark = susp ? "\ud83d\udd34 " : "\ud83d\udfe2 ";
     const style = susp ? ' style="color:#e5484d"' : "";
     const when = whenStr(x.scheduled_time);
     return `<option value="${x.id}"${style}>${mark}${when ? when + " \u00b7 " : ""}${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${tag}</option>`;
