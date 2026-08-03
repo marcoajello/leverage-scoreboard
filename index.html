@@ -1098,8 +1098,12 @@ async function initLive() {
       return sameDay ? ` \u00b7 ${hm}`
         : ` \u00b7 ${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
     };
-    $("liveSel").innerHTML = rows.map(x =>
-      `<option value="${x.id}">${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${whenStr(x.scheduled_time)}</option>`).join("");
+    $("liveSel").innerHTML = rows.map(x => {
+      const susp = !!x.event_status;   // e.g. Interrupted: rain, darkness
+      const tag = susp ? ` \u00b7 ${(x.event_status || "suspended").toLowerCase()}` : "";
+      const style = susp ? ' style="color:#e5484d"' : "";
+      return `<option value="${x.id}"${style}>${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${whenStr(x.scheduled_time)}${tag}</option>`;
+    }).join("");
     const bnr = $("bnr");
     if (!MATCHES["stream"]) bnr.classList.add("picker");
     bnr.style.display = "";
