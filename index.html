@@ -806,8 +806,14 @@ $("stepFwd").onclick = () => { stopPlay(); idx = Math.min(cur.points.length, idx
 $("scrub").oninput = ev => { stopPlay(); idx = +ev.target.value; render(); };
 
 /* ---------- live stream (local ingestion service on :8742) ---------- */
-const SVC = (location.protocol === "file:" ? "http://localhost"
-            : location.protocol + "//" + location.hostname) + ":8742";
+// Public deploy of live/service.py (Railway). Empty = live mode is
+// localhost-only; set once the service has a public URL, then rebuild.
+const PUBLIC_SVC = "";
+const IS_LOCAL = location.protocol === "file:" || location.hostname === "localhost"
+              || location.hostname === "127.0.0.1" || location.hostname.endsWith(".local");
+const SVC = IS_LOCAL
+  ? (location.protocol === "file:" ? "http://localhost" : location.protocol + "//" + location.hostname) + ":8742"
+  : PUBLIC_SVC;
 let streamTimer = null, streamEntries = [];
 
 function stCall(s) {
@@ -997,13 +1003,22 @@ $("bnOpen").onclick = ev => {
 };
 
 async function initLive() {
+  if (!SVC) return;  // no public service configured; page stays static
   try {
     const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
     const rows = ((await r.json()).matches || [])
       .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
     if (!rows.length) return;
+    const whenStr = iso => {
+      if (!iso) return "";
+      const d = new Date(iso), now = new Date();
+      const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const sameDay = d.toDateString() === now.toDateString();
+      return sameDay ? ` \u00b7 ${hm}`
+        : ` \u00b7 ${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
+    };
     $("liveSel").innerHTML = rows.map(x =>
-      `<option value="${x.id}">${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}</option>`).join("");
+      `<option value="${x.id}">${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${whenStr(x.scheduled_time)}</option>`).join("");
     const bnr = $("bnr");
     if (!MATCHES["stream"]) bnr.classList.add("picker");
     bnr.style.display = "";
