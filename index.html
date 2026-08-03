@@ -85,7 +85,9 @@
   .lvz .bnr {
     position: sticky; top: 0; z-index: 60;
     margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 0;
-    background: var(--card); border-bottom: 1px solid var(--ring);
+    background: var(--card);
+    border: 1px solid var(--ring); border-top: none;
+    border-bottom: 2px solid var(--heat-1);
     box-shadow: 0 6px 24px rgba(0,0,0,0.45);
     padding: 0 var(--pad);
   }
@@ -125,6 +127,35 @@
     background: var(--card-2); border: 1px solid var(--ring); color: var(--ink);
     border-radius: 5px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit;
   }
+
+  /* ------------- pop-out mini player (?mini=1&match=ID) ------------- */
+  .lvz.mini { padding: 10px; min-height: 100vh; display: flex; }
+  .lvz.mini .miniwrap {
+    flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center;
+    background: var(--card); border: 1px solid var(--ring); border-radius: 10px;
+    padding: 12px 14px; font-size: 14px;
+  }
+  .lvz.mini .mtop { display: flex; align-items: center; gap: 8px; font-size: 10.5px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .lvz.mini .mtop .mmult { margin-left: auto; font-weight: 800; font-size: 16px;
+    letter-spacing: 0; text-transform: none; }
+  .lvz.mini .mrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
+    gap: 8px; font-variant-numeric: tabular-nums; }
+  .lvz.mini .mrow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
+  .lvz.mini .mrow.serving .ddot { visibility: visible; background: var(--heat-3); }
+  .lvz.mini .mrow .mname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz.mini .mrow .mcells { display: flex; gap: 4px; }
+  .lvz.mini .mrow .mcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
+    border-radius: 3px; font-weight: 700; }
+  .lvz.mini .mrow .mcells .c.done { color: var(--ink-3); font-weight: 600; }
+  .lvz.mini .mrow .mcells .c.cur { background: var(--card-2); }
+  .lvz.mini .mrow .mcells .c.pt { background: var(--card-2); color: var(--heat-3); }
+  .lvz.mini .mwp { display: flex; height: 5px; border-radius: 3px; overflow: hidden;
+    gap: 1px; background: var(--page); }
+  .lvz.mini .mwp .a { background: var(--pA); }
+  .lvz.mini .mwp .b { background: var(--pB); }
+  .lvz.mini .mfoot { font-size: 10.5px; color: var(--ink-3); display: flex;
+    justify-content: space-between; gap: 8px; }
   .lvz .tab:focus-visible, .lvz button:focus-visible, .lvz input:focus-visible, .lvz svg:focus-visible
     { outline: 2px solid var(--heat-2); outline-offset: 2px; }
 
@@ -273,6 +304,7 @@
       <div class="dmeta">
         <span id="bnMeta"></span>
         <button id="bnOpen">Open full view</button>
+        <button id="bnPop">Pop out</button>
       </div>
     </div>
   </div>
@@ -995,6 +1027,13 @@ $("bnRow").onclick = () => {
   updateBanner();
 };
 $("bnPick").onclick = ev => ev.stopPropagation();
+$("bnPop").onclick = ev => {
+  ev.stopPropagation();
+  const m = MATCHES["stream"];
+  if (!m) return;
+  window.open(location.pathname + "?mini=1&match=" + m.id, "lvzmini",
+              "popup=yes,width=330,height=240");
+};
 $("bnOpen").onclick = ev => {
   ev.stopPropagation();
   selectMatch("stream");
@@ -1025,9 +1064,64 @@ async function initLive() {
     $("liveGo").onclick = () => followStream(+$("liveSel").value);
   } catch (e) { /* no local service running: page stays fully static */ }
 }
-initLive();
+/* ---------- pop-out mini player mode ---------- */
+const MINI_PARAMS = new URLSearchParams(location.search);
+const MINI_ID = MINI_PARAMS.get("mini") === "1" ? MINI_PARAMS.get("match") : null;
 
-selectMatch(Object.keys(MATCHES)[0]);
+function miniShell() {
+  const root = document.querySelector(".lvz");
+  root.classList.add("mini");
+  document.title = "LIVE \u00b7 Leverage";
+  root.innerHTML =
+    `<div class="miniwrap">` +
+    `<div class="mtop"><span class="livedot"></span><span id="mTour">\u2026</span>` +
+    `<span class="mmult" id="mMult"></span></div>` +
+    `<div class="mrow" id="mRowA"><span class="ddot"></span><span class="mname" id="mNameA"></span><span class="mcells" id="mCellsA"></span></div>` +
+    `<div class="mrow" id="mRowB"><span class="ddot"></span><span class="mname" id="mNameB"></span><span class="mcells" id="mCellsB"></span></div>` +
+    `<div class="mwp"><div class="a" id="mWpA" style="width:50%"></div><div class="b" id="mWpB" style="width:50%"></div></div>` +
+    `<div class="mfoot"><span id="mStatus"></span><span id="mNote">feed runs seconds behind</span></div>` +
+    `</div>`;
+}
+
+function miniCells(k, st, sets) {
+  const cells = sets.map(s => `<span class="c done">${s[k]}</span>`);
+  cells.push(`<span class="c cur">${st.games[k]}</span>`);
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  cells.push(`<span class="c pt">${call[k]}</span>`);
+  return cells.join("");
+}
+
+async function pollMini() {
+  try {
+    const snap = await fetch(`${SVC}/api/match/${MINI_ID}?since=999999999`).then(r => r.json());
+    const st = snap.state, sets = st.set_scores || [];
+    $("mTour").textContent = `${snap.match.tournament || ""} \u00b7 ${snap.live ? "live" : "final"}`;
+    $("mNameA").textContent = lastName(snap.match.p1 || "?");
+    $("mNameB").textContent = lastName(snap.match.p2 || "?");
+    $("mCellsA").innerHTML = miniCells(0, st, sets);
+    $("mCellsB").innerHTML = miniCells(1, st, sets);
+    $("mRowA").classList.toggle("serving", snap.live && st.server === "A");
+    $("mRowB").classList.toggle("serving", snap.live && st.server === "B");
+    $("mWpA").style.width = (st.wp * 100) + "%";
+    $("mWpB").style.width = (100 - st.wp * 100) + "%";
+    const mult = st.mult_next || 1;
+    $("mMult").textContent = snap.live ? mult.toFixed(1) + "\u00d7" : "final";
+    $("mMult").style.color = snap.live ? heat(mult) : "var(--ink-3)";
+    $("mStatus").textContent = `win prob ${lastName(snap.match.p1 || "?")} ${(st.wp * 100).toFixed(1)}%`;
+    $("mNote").textContent = "feed runs seconds behind";
+  } catch (e) {
+    $("mNote").textContent = "reconnecting\u2026";
+  }
+}
+
+if (MINI_ID && SVC) {
+  miniShell();
+  pollMini();
+  setInterval(pollMini, 5000);
+} else {
+  initLive();
+  selectMatch(Object.keys(MATCHES)[0]);
+}
 </script>
 </body>
 </html>
