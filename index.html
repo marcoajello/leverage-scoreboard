@@ -1038,7 +1038,14 @@ $("bnOpen").onclick = ev => {
   ev.stopPropagation();
   selectMatch("stream");
   idx = cur.points.length; render();
-  document.querySelector(".board").scrollIntoView({ behavior: "smooth" });
+  // collapse the detail so the full view isn't hidden behind it, and give
+  // the scroll target headroom equal to the (now slim) sticky banner
+  bnrOpen = false;
+  localStorage.setItem("lvzBnrOpen", "0");
+  updateBanner();
+  const board = document.querySelector(".board");
+  board.style.scrollMarginTop = ($("bnr").offsetHeight + 10) + "px";
+  board.scrollIntoView({ behavior: "smooth" });
 };
 
 async function initLive() {
