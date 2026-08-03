@@ -808,7 +808,7 @@ $("scrub").oninput = ev => { stopPlay(); idx = +ev.target.value; render(); };
 /* ---------- live stream (local ingestion service on :8742) ---------- */
 // Public deploy of live/service.py (Railway). Empty = live mode is
 // localhost-only; set once the service has a public URL, then rebuild.
-const PUBLIC_SVC = "";
+const PUBLIC_SVC = "https://web-production-3cb8b.up.railway.app";
 const IS_LOCAL = location.protocol === "file:" || location.hostname === "localhost"
               || location.hostname === "127.0.0.1" || location.hostname.endsWith(".local");
 const SVC = IS_LOCAL
