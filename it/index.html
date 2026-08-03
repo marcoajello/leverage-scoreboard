@@ -25,11 +25,12 @@
     --heat-1:      #c98500;
     --heat-2:      #eda100;
     --heat-3:      #ffc233;
+    --pad: clamp(12px, 3vw, 40px);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--page);
     color: var(--ink);
     min-height: 100vh;
-    padding: clamp(12px, 3vw, 40px);
+    padding: var(--pad);
     box-sizing: border-box;
   }
   .lvz *, .lvz *::before, .lvz *::after { box-sizing: border-box; }
@@ -48,6 +49,171 @@
     font-family: inherit; letter-spacing: 0.02em;
   }
   .lvz .tab[aria-selected="true"] { color: var(--ink); border-color: var(--heat-1); background: var(--card-2); }
+
+  .lvz .livebar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .lvz .livedot {
+    flex: none; color: #e5484d; border: 1px solid #e5484d; border-radius: 4px;
+    padding: 2px 6px; font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em;
+    line-height: 1; animation: lvpulse 1.6s ease-in-out infinite;
+  }
+  .lvz .livedot::before { content: "LIVE"; }
+  @keyframes lvpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .lvz .livebar select {
+    background: var(--card); color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; max-width: 340px;
+  }
+  .lvz .livebar button {
+    background: var(--card); color: var(--ink); border: 1px solid var(--heat-1);
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .lvz .livebar .lnote { font-size: 11px; color: var(--ink-3); }
+
+  .lvz .bnr .bpick { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .lvz .bnr .bpick select {
+    background: var(--card-2); color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: inherit;
+    flex: 1; min-width: 0; max-width: 360px;
+  }
+  .lvz .bnr .bpick select#liveSort { flex: none; width: auto; }
+  .lvz .bnr .csel { position: relative; flex: 1; min-width: 0; max-width: 420px; }
+  .lvz .bnr .cselBtn {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: var(--card-2); color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: inherit;
+    cursor: pointer; text-align: left;
+  }
+  .lvz .bnr .cselBtn #cselLabel { flex: 1; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+  .lvz .bnr .cselBtn .carr { color: var(--ink-3); flex: none; }
+  .lvz .bnr .cselPanel {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 80;
+    background: var(--card); border: 1px solid var(--ring); border-radius: 8px;
+    max-height: 320px; overflow-y: auto; box-shadow: 0 10px 34px rgba(0,0,0,0.6);
+  }
+  .lvz .bnr .crow {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    font-size: 12px; cursor: pointer; color: var(--ink-2);
+  }
+  .lvz .bnr .crow:hover, .lvz .bnr .crow[aria-selected="true"] { background: var(--card-2); color: var(--ink); }
+  .lvz .bnr .crow .ball { flex: none; }
+  .lvz .bnr .crow .ctime { color: var(--ink-3); font-variant-numeric: tabular-nums; flex: none; min-width: 58px; }
+  .lvz .bnr .crow .ctxt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz .bnr .crow .cscore { flex: none; color: var(--ink); font-weight: 700;
+    font-variant-numeric: tabular-nums; font-size: 11.5px; }
+  .lvz .bnr .crow.susp .cscore { color: #e5484d; }
+  .lvz .bnr .crow.susp .ctxt { color: #e5484d; }
+  .lvz .bnr .bpick button {
+    background: var(--card-2); color: var(--ink); border: 1px solid var(--heat-1);
+    border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    font-family: inherit; flex: none;
+  }
+  .lvz .bnr .bpick .lnote { font-size: 10.5px; color: var(--ink-3); flex: none; }
+  @media (max-width: 640px) { .lvz .bnr .bpick .lnote { display: none; } }
+  .lvz .bnr.picker .bscore, .lvz .bnr.picker .bmult, .lvz .bnr.picker .btog { display: none; }
+  .lvz .bnr:not(.picker) .brow > .bpick { display: none; }
+  .lvz .bnr .bdetail .bpick { padding-top: 2px; }
+
+  /* ------------- sticky live banner with drop-down detail ------------- */
+  .lvz .bnr {
+    position: sticky; top: 0; z-index: 60;
+    margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 0;
+    background: var(--card);
+    border: 1px solid var(--ring); border-top: none;
+    border-bottom: 2px solid var(--heat-1);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+    padding: 0 var(--pad);
+  }
+  .lvz .bnr .brow {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 8px 0; font-size: 13px; max-width: 960px; margin: 0 auto;
+  }
+  .lvz .bnr .bscore {
+    flex: 1; min-width: 0; font-weight: 700; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lvz .bnr .bscore .srv { color: var(--heat-3); }
+  .lvz .bnr .bscore .vs { color: var(--ink-3); font-weight: 400; }
+  .lvz .bnr .bmult { font-weight: 800; font-size: 14px; flex: none; }
+  .lvz .bnr .btog { background: none; border: none; color: var(--ink-2); cursor: pointer;
+    font-size: 15px; line-height: 1; padding: 4px 9px; font-family: inherit; flex: none; }
+  .lvz .bnr .btog:hover { color: var(--heat-3); }
+  .lvz .bnr .bdetail { max-width: 960px; margin: 0 auto; padding: 2px 0 10px;
+    display: flex; flex-direction: column; gap: 7px; }
+  .lvz .bnr .drow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
+    gap: 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .lvz .bnr .drow .ddot { width: 14px; visibility: hidden; font-size: 10px; line-height: 1; }
+  .lvz .bnr .drow.serving .ddot { visibility: visible; }
+  .lvz .bnr .drow.serving .ddot::before { content: "\01F3BE"; }
+  .lvz .bnr .drow .dname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz #bnRowA .dname, .lvz #mRowA .mname { color: var(--pA); }
+  .lvz #bnRowB .dname, .lvz #mRowB .mname { color: var(--pB); }
+  .lvz .bnr .drow .dcells { display: flex; gap: 4px; }
+  .lvz .bnr .drow .dcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
+    border-radius: 3px; font-weight: 700; }
+  .lvz .bnr .drow .dcells .c.done { color: var(--ink-3); font-weight: 600; }
+  .lvz .bnr .drow .dcells .c.cur { background: var(--card-2); }
+  .lvz .bnr .drow .dcells .c.pt { background: var(--card-2); color: var(--heat-3); }
+  .lvz .bnr .dwp { display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+    gap: 1px; background: var(--page); }
+  .lvz .bnr .dwp .a { background: var(--pA); }
+  .lvz .bnr .dwp .b { background: var(--pB); }
+  .lvz .bnr .dmeta { display: flex; align-items: center;
+    gap: 8px; font-size: 11px; color: var(--ink-3); flex-wrap: wrap; }
+  .lvz .bnr .dmeta .dbtns { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  .lvz .bnr .dmeta button {
+    background: var(--card-2); border: 1px solid var(--ring); color: var(--ink);
+    border-radius: 5px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+
+  /* ------------- pop-out mini player (?mini=1&match=ID) ------------- */
+  .lvz.mini { padding: 10px; min-height: 100vh; display: flex; }
+
+  /* ------------- OBS overlay lower-third (?overlay=1&match=ID) ------------- */
+  .lvz.ovl { background: transparent; padding: 0; min-height: 100vh;
+    display: flex; align-items: flex-end; justify-content: center; }
+  .lvz.ovl .ovbar {
+    display: flex; align-items: center; gap: 18px;
+    background: rgba(26, 26, 25, 0.92); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px; padding: 12px 20px; margin: 0 24px 26px;
+    font-size: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .lvz.ovl .ovrows { display: flex; flex-direction: column; gap: 5px; }
+  .lvz.ovl .mrow { grid-template-columns: 10px auto auto; }
+  .lvz.ovl .mrow .mname { overflow: visible; }
+  .lvz.ovl .ovdiv { width: 1px; height: 44px; background: rgba(255,255,255,0.15); flex: none; }
+  .lvz.ovl .ovstat { display: flex; flex-direction: column; gap: 4px; flex: none; }
+  .lvz.ovl .ovstat .lab { font-size: 9px; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .lvz.ovl .mmult { font-size: 24px; font-weight: 800; }
+  .lvz.ovl .mwp { width: 120px; height: 8px; border-radius: 4px; }
+  .lvz.ovl .ovtour { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3); writing-mode: initial; align-self: flex-start; }
+  .lvz.mini .miniwrap {
+    flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center;
+    background: var(--card); border: 1px solid var(--ring); border-radius: 10px;
+    padding: 12px 14px; font-size: 14px;
+  }
+  .lvz.pip .mtop { display: flex; align-items: center; gap: 8px; font-size: 10.5px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .lvz.pip .mtop .mmult { margin-left: auto; font-weight: 800; font-size: 16px;
+    letter-spacing: 0; text-transform: none; }
+  .lvz.pip .mrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
+    gap: 8px; font-variant-numeric: tabular-nums; }
+  .lvz.pip .mrow .ddot { width: 14px; visibility: hidden; font-size: 10px; line-height: 1; }
+  .lvz.pip .mrow.serving .ddot { visibility: visible; }
+  .lvz.pip .mrow.serving .ddot::before { content: "\01F3BE"; }
+  .lvz.pip .mrow .mname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz.pip .mrow .mcells { display: flex; gap: 4px; }
+  .lvz.pip .mrow .mcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
+    border-radius: 3px; font-weight: 700; }
+  .lvz.pip .mrow .mcells .c.done { color: var(--ink-3); font-weight: 600; }
+  .lvz.pip .mrow .mcells .c.cur { background: var(--card-2); }
+  .lvz.pip .mrow .mcells .c.pt { background: var(--card-2); color: var(--heat-3); }
+  .lvz.pip .mwp { display: flex; height: 5px; border-radius: 3px; overflow: hidden;
+    gap: 1px; background: var(--page); }
+  .lvz.pip .mwp .a { background: var(--pA); }
+  .lvz.pip .mwp .b { background: var(--pB); }
+  .lvz.pip .mfoot { font-size: 10.5px; color: var(--ink-3); display: flex;
+    justify-content: space-between; gap: 8px; }
   .lvz .tab:focus-visible, .lvz button:focus-visible, .lvz input:focus-visible, .lvz svg:focus-visible
     { outline: 2px solid var(--heat-2); outline-offset: 2px; }
 
@@ -73,8 +239,11 @@
     font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;
   }
   .lvz .prow { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 6px 0; }
-  .lvz .prow .dot { width: 8px; height: 8px; border-radius: 50%; visibility: hidden; }
-  .lvz .prow.serving .dot { visibility: visible; background: var(--heat-3); }
+  .lvz .prow .dot { width: 12px; visibility: hidden; font-size: 11px; line-height: 1; }
+  .lvz .prow.serving .dot { visibility: visible; }
+  .lvz .prow.serving .dot::before { content: "\01F3BE"; }
+  .lvz .prow.pa .name .nm { color: var(--pA); }
+  .lvz .prow.pb .name .nm { color: var(--pB); }
   .lvz .prow .name { font-size: clamp(16px, 2.6vw, 21px); font-weight: 700; letter-spacing: 0.01em; display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; }
   .lvz .prow .name .nm { overflow: hidden; text-overflow: ellipsis; }
   .lvz .prow .name::before { content: ""; width: 10px; height: 10px; border-radius: 2px; flex: none; }
@@ -177,11 +346,46 @@
 </style>
 
 <div class="lvz">
+  <div class="bnr" id="bnr" style="display:none">
+    <div class="brow" id="bnRow">
+      <span class="livedot" aria-hidden="true"></span>
+      <span class="bpick" id="bnPick">
+        <div class="csel" id="csel">
+          <button class="cselBtn" id="cselBtn" aria-haspopup="listbox" aria-expanded="false">
+            <span id="cselLabel">pick a live match</span><span class="carr">&#9662;</span>
+          </button>
+          <div class="cselPanel" id="cselPanel" role="listbox" style="display:none"></div>
+        </div>
+        <button id="liveGo">Segui</button>
+        <select id="liveSort" aria-label="Sort live matches">
+          <option value="tour">per circuito</option>
+          <option value="time">per orario</option>
+        </select>
+        <span class="lnote">il feed &#232; qualche secondo dietro al campo</span>
+      </span>
+      <span class="bscore" id="bnScore"></span>
+      <span class="bmult" id="bnMult"></span>
+      <button class="btog" id="bnTog" aria-label="Expand or collapse live detail">&#9660;</button>
+    </div>
+    <div class="bdetail" id="bnDetail" style="display:none">
+      <div class="drow" id="bnRowA"><span class="ddot"></span><span class="dname" id="bnNameA"></span><span class="dcells" id="bnCellsA"></span></div>
+      <div class="drow" id="bnRowB"><span class="ddot"></span><span class="dname" id="bnNameB"></span><span class="dcells" id="bnCellsB"></span></div>
+      <div class="dwp"><div class="a" id="bnWpA" style="width:50%"></div><div class="b" id="bnWpB" style="width:50%"></div></div>
+      <div class="dmeta">
+        <span id="bnMeta"></span>
+        <span class="dbtns">
+          <button id="bnOpen">Vista completa</button>
+          <button id="bnPop">Mini finestra</button>
+        </span>
+      </div>
+    </div>
+  </div>
   <div class="wrap">
     <div class="masthead">
       <div class="wordmark"><span class="lv">LEVER</span>AGE&nbsp;SCOREBOARD</div>
+      <a href="it/" style="color:var(--ink-2);font-size:12px">Versione italiana</a>
+      <a class="leverage-app-link" href="app/" style="color:var(--heat-3);font-size:12px;font-weight:700">Open the app &#8594;</a>
       <a href="../" style="color:var(--ink-2);font-size:12px">English version</a>
-      <a class="leverage-app-link" href="app/" style="color:var(--heat-3);font-size:12px;font-weight:700">Apri l'app &#8594;</a>
       <div class="tag">prototipo &#183; partite vere &#183; modello di Markov esatto</div>
     </div>
 
@@ -384,9 +588,11 @@ function selectMatch(id) {
   $("levLegend").innerHTML =
     `<span class="k"><span class="sw" style="background:var(--pA)"></span>punto vinto da ${lastName(cur.playerA)}</span>` +
     `<span class="k"><span class="sw" style="background:var(--pB)"></span>punto vinto da ${lastName(cur.playerB)}</span>`;
-  $("wpLegend").innerHTML =
-    `<span class="k"><span class="sw" style="background:var(--pA)"></span>modello live \u2014 parte dalla carriera, impara punto dopo punto</span>` +
-    `<span class="k"><span class="sw" style="background:var(--ink-3)"></span>a posteriori \u2014 statistiche dell'intera partita</span>`;
+  $("wpLegend").innerHTML = cur.stream
+    ? `<span class="k"><span class="sw" style="background:var(--pA)"></span>modello live \u2014 parte dall'Elo, impara punto dopo punto</span>` +
+      `<span class="k">linea a posteriori nascosta \u2014 le statistiche dell'intera partita non esistono a met\u00e0 partita \u00b7 dati live: Live Tennis API</span>`
+    : `<span class="k"><span class="sw" style="background:var(--pA)"></span>modello live \u2014 parte dalla carriera, impara punto dopo punto</span>` +
+      `<span class="k"><span class="sw" style="background:var(--ink-3)"></span>a posteriori \u2014 statistiche dell'intera partita</span>`;
   buildCharts();
   buildBigPoints();
   render();
@@ -520,6 +726,7 @@ function stateAt(i) { return i < cur.points.length ? cur.points[i] : null; }
 
 function render() {
   if (cur.live) { renderLive(); return; }
+  if (cur.stream && idx >= cur.points.length && !cur.winner) { renderStreamEdge(); return; }
   const N = cur.points.length;
   const p = stateAt(idx);
   const over = !p;
@@ -585,13 +792,16 @@ function buildCharts() {
     if (a.sets[0] + a.sets[1] !== b.sets[0] + b.sets[1]) setEnds.push(i - 0.5);
   }
 
-  /* win prob line */
+  /* prob. vittoria line */
   const yW = v => PAD.t + (HW - PAD.t - PAD.b) * (1 - v);
   let g = gridSvg(HW, [[yW(1), "100%"], [yW(0.5), "50%"], [yW(0), "0%"]], setEnds, N);
   g += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${yW(0.5)}" y2="${yW(0.5)}" stroke="#4a4a46" stroke-dasharray="4 4" stroke-width="1"/>`;
-  const pts = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.wp).toFixed(1)}`).join(" ");
   const ptsB = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.b.wp).toFixed(1)}`).join(" ");
-  g += `<polyline points="${pts}" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
+  if (!cur.stream) {
+    /* hindsight line needs whole-match stats, which don't exist mid-match */
+    const pts = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.wp).toFixed(1)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
+  }
   g += `<polyline points="${ptsB}" fill="none" stroke="var(--pA)" stroke-width="2" stroke-linejoin="round"/>`;
   g += `<rect id="wpDim" x="0" y="0" width="0" height="${HW}" fill="#0d0d0d" opacity="0.55"/>`;
   g += `<line id="wpMark" y1="${PAD.t}" y2="${HW - PAD.b}" stroke="var(--heat-2)" stroke-width="1.5"/>`;
@@ -650,7 +860,8 @@ for (const cid of ["wpChart", "levChart", "spChart"]) {
     const call = (p.tb ? "TB " : "") + callStr(p);
     t.innerHTML = `<strong>Punto ${i + 1}</strong> \u00b7 set ${p.sets[0] + p.sets[1] + 1}, ${p.games[0]}\u2013${p.games[1]}, ${call}<br>` +
       `vale <strong>${p.b.mult.toFixed(1)}\u00d7</strong> (LEV ${p.b.lev.toFixed(3)}) \u00b7 vinto da <strong>${lastName(p.winner === "A" ? cur.playerA : cur.playerB)}</strong><br>` +
-      `prob. di vittoria ${lastName(cur.playerA)} prima del punto: <strong>${Math.round(p.b.wp * 100)}%</strong> live \u00b7 ${Math.round(p.wp * 100)}% a posteriori` +
+      `prob. di vittoria ${lastName(cur.playerA)} prima del punto: <strong>${Math.round(p.b.wp * 100)}%</strong> live` +
+      (cur.stream ? "" : ` \u00b7 ${Math.round(p.wp * 100)}% a posteriori`) +
       (p.eff ? `<br>scambio di ${p.eff.rally} \u00b7 ${Math.round(p.eff.d1 + p.eff.d2)} m corsi \u00b7 servizio ${p.eff.spd} km/h \u00b7 ${p.eff.t}` : "");
     t.style.display = "block";
     t.style.left = Math.min(ev.clientX + 14, window.innerWidth - 260) + "px";
@@ -700,7 +911,403 @@ $("stepBack").onclick = () => { stopPlay(); idx = Math.max(0, idx - 1); render()
 $("stepFwd").onclick = () => { stopPlay(); idx = Math.min(cur.points.length, idx + 1); render(); };
 $("scrub").oninput = ev => { stopPlay(); idx = +ev.target.value; render(); };
 
-selectMatch(Object.keys(MATCHES)[0]);
+/* ---------- live stream (local ingestion service on :8742) ---------- */
+// Public deploy of live/service.py (Railway). Empty = live mode is
+// localhost-only; set once the service has a public URL, then rebuild.
+const PUBLIC_SVC = "https://web-production-3cb8b.up.railway.app";
+const IS_LOCAL = location.protocol === "file:" || location.hostname === "localhost"
+              || location.hostname === "127.0.0.1" || location.hostname.endsWith(".local");
+const SVC = IS_LOCAL
+  ? (location.protocol === "file:" ? "http://localhost" : location.protocol + "//" + location.hostname) + ":8742"
+  : PUBLIC_SVC;
+let streamTimer = null, streamEntries = [];
+
+function stCall(s) {
+  if (s.tb) return [String(s.p[0]), String(s.p[1])];
+  const C = ["0", "15", "30", "40", "Ad"];
+  return [C[Math.min(s.p[0], 4)], C[Math.min(s.p[1], 4)]];
+}
+
+function rebuildStream(snap) {
+  const m = MATCHES["stream"];
+  const pts = [];
+  let prevSt = null, prevWp = snap.match.wp0, share = { A: 0, B: 0 }, gaps = 0;
+  for (const e of streamEntries) {
+    if (e.type !== "point") { prevSt = e.st; prevWp = e.wp; gaps++; continue; }
+    if (!prevSt) {
+      if (e.st.s[0] + e.st.s[1] === 0 && e.st.g[0] + e.st.g[1] === 0
+          && e.st.p[0] + e.st.p[1] === 1)
+        prevSt = { s: [0, 0], g: [0, 0], p: [0, 0], srv: e.st.srv, tb: false };
+      else { prevSt = e.st; prevWp = e.wp; continue; }
+    }
+    share[e.w] += e.lev;
+    const tot = share.A + share.B || 1;
+    pts.push({
+      sets: prevSt.s, games: prevSt.g, pts: stCall(prevSt), tb: prevSt.tb,
+      server: prevSt.srv, winner: e.w,
+      b: { wp: prevWp, lev: e.lev, mult: 0,
+           levShare: Math.round(100 * share.A / tot), pA: e.srvA, pB: e.srvB },
+    });
+    prevSt = e.st; prevWp = e.wp;
+  }
+  const mean = pts.length ? pts.reduce((s, p) => s + p.b.lev, 0) / pts.length : 0;
+  for (const p of pts) p.b.mult = mean > 0 ? p.b.lev / mean : 1;
+  m.points = pts; m.meanLev = mean; m.snap = snap; m.gaps = gaps;
+  m.sets = (snap.state && snap.state.set_scores) || [];
+  m.playerA = snap.match.p1 || "P1"; m.playerB = snap.match.p2 || "P2";
+  m.priors = [snap.match.priors.p_a, snap.match.priors.p_b];
+  m.winner = null;
+  if (!snap.live && snap.state) {
+    const need = snap.match.format === "BO5" ? 3 : 2;
+    if (snap.state.sets[0] >= need) m.winner = "A";
+    else if (snap.state.sets[1] >= need) m.winner = "B";
+    m.score = m.sets.map(s => `${s[0]}\u2013${s[1]}`).join(" ");
+    const tot = share.A + share.B || 1;
+    m.finalLevBayes = [Math.round(100 * share.A / tot),
+                       Math.round(100 * share.B / tot)];
+  }
+}
+
+function renderStreamEdge() {
+  const st = cur.snap.state, N = cur.points.length;
+  for (const [k, row] of [[0, "A"], [1, "B"]]) {
+    const cells = [];
+    for (let s = 0; s < cur.sets.length; s++)
+      cells.push(`<span class="cell set-done">${cur.sets[s][k]}</span>`);
+    cells.push(`<span class="cell games">${st.games[k]}</span>`);
+    cells.push(`<span class="cell pts">${stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts })[k]}</span>`);
+    $("digits" + row).innerHTML = cells.join("");
+  }
+  $("rowA").classList.toggle("serving", st.server === "A");
+  $("rowB").classList.toggle("serving", st.server === "B");
+  const mult = cur.meanLev > 0 ? st.lev_next / cur.meanLev : 1;
+  const pv = $("pvMult");
+  pv.textContent = mult.toFixed(1) + "\u00d7";
+  pv.style.color = heat(mult);
+  pv.classList.toggle("hot", mult >= 6);
+  const share = N ? cur.points[N - 1].b.levShare : 50;
+  $("levA").style.width = share + "%";
+  $("levB").style.width = (100 - share) + "%";
+  $("levNumA").textContent = Math.round(share);
+  $("levNumB").textContent = Math.round(100 - share);
+  const wp = Math.round(st.wp * 100);
+  $("wpline").innerHTML = `Probabilit\u00e0 di vittoria: <strong>${wp}%</strong> ${lastName(cur.playerA)} \u00b7 <strong>${100 - wp}%</strong> ${lastName(cur.playerB)}`;
+  $("formline").innerHTML = `Forma al servizio (stima live): ${lastName(cur.playerA)} <strong>${(st.srvA * 100).toFixed(1)}%</strong> \u00b7 ${lastName(cur.playerB)} <strong>${(st.srvB * 100).toFixed(1)}%</strong> (valori Elo di partenza ${(cur.priors[0] * 100).toFixed(1)} / ${(cur.priors[1] * 100).toFixed(1)})`;
+  $("callline").innerHTML = `<strong>LIVE</strong> \u00b7 ${cur.snap.live ? "in aggiornamento" : "feed terminato"}${cur.gaps ? ` \u00b7 ${cur.gaps} buch${cur.gaps > 1 ? "i" : "o"} nel feed` : ""}`;
+  $("ptcount").textContent = `punto ${N} / ${N} \u00b7 live`;
+  $("scrub").value = N;
+  updateMarkers();
+}
+
+function ensureStreamTab() {
+  let b = document.getElementById("tab-stream");
+  if (!b) {
+    b = document.createElement("button");
+    b.className = "tab"; b.role = "tab"; b.id = "tab-stream";
+    b.onclick = () => selectMatch("stream");
+    tabsEl.insertBefore(b, tabsEl.firstChild);   // live before historical
+  }
+  b.textContent = MATCHES["stream"].label;
+}
+
+async function followStream(id) {
+  const full = await fetch(`${SVC}/api/match/${id}`).then(r => r.json());
+  streamEntries = full.points || [];
+  MATCHES["stream"] = MATCHES["stream"] || {};
+  const m = MATCHES["stream"];
+  m.stream = true; m.live = false; m.id = id;
+  m.label = "LIVE \u00b7 " + lastName(full.match.p1 || "?") + " v " + lastName(full.match.p2 || "?");
+  rebuildStream(full);
+  $("bnDetail").insertBefore($("bnPick"), $("bnDetail").querySelector(".dmeta"));
+  updateBanner();
+  ensureStreamTab();
+  selectMatch("stream");
+  idx = cur.points.length;
+  render();
+  clearInterval(streamTimer);
+  streamTimer = setInterval(pollStream, 5000);
+}
+
+async function pollStream() {
+  const m = MATCHES["stream"];
+  if (!m) return;
+  try {
+    const snap = await fetch(`${SVC}/api/match/${m.id}?since=${streamEntries.length}`).then(r => r.json());
+    if (snap.n < streamEntries.length) streamEntries = [];
+    for (const e of snap.points || []) if (e.i >= streamEntries.length) streamEntries.push(e);
+    const wasAtEnd = idx >= m.points.length;
+    rebuildStream(snap);
+    if (cur === m) {
+      $("scrub").max = m.points.length;
+      if (wasAtEnd) idx = m.points.length;
+      buildCharts(); buildBigPoints(); render();
+    }
+    updateBanner();
+    if (!snap.live) { clearInterval(streamTimer); streamTimer = null; }
+  } catch (e) { /* transient fetch failure; next tick retries */ }
+}
+
+/* ---------- sticky live banner ---------- */
+let bnrOpen = localStorage.getItem("lvzBnrOpen") === "1";
+
+function bnrCells(k, st, sets) {
+  const cells = sets.map(s => `<span class="c done">${s[k]}</span>`);
+  cells.push(`<span class="c cur">${st.games[k]}</span>`);
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  cells.push(`<span class="c pt">${call[k]}</span>`);
+  return cells.join("");
+}
+
+function updateBanner() {
+  const m = MATCHES["stream"];
+  const bnr = $("bnr");
+  if (!m || !m.snap) {
+    if (!bnr.classList.contains("picker")) bnr.style.display = "none";
+    return;
+  }
+  bnr.classList.remove("picker");
+  const st = m.snap.state, sets = m.sets || [];
+  bnr.style.display = "";
+  const A = lastName(m.playerA), B = lastName(m.playerB);
+  const setsStr = sets.map(s => `${s[0]}\u2013${s[1]}`).join(" ");
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  const srvA = st.server === "A";
+  const ball = "\ud83c\udfbe";
+  $("bnScore").innerHTML =
+    `<span style="color:var(--pA)">${srvA ? ball + "\u2009" : ""}${A}</span> <span class="vs">v</span> ` +
+    `<span style="color:var(--pB)">${srvA ? "" : ball + "\u2009"}${B}</span>&ensp;` +
+    `<span class="vs">${setsStr}${setsStr ? " \u00b7 " : ""}${st.games[0]}\u2013${st.games[1]} ${call[0]}\u2013${call[1]}</span>`;
+  const mult = m.meanLev > 0 ? st.lev_next / m.meanLev : 1;
+  $("bnMult").textContent = m.snap.live ? mult.toFixed(1) + "\u00d7" : "final";
+  $("bnMult").style.color = m.snap.live ? heat(mult) : "var(--ink-3)";
+  /* detail */
+  $("bnNameA").textContent = A; $("bnNameB").textContent = B;
+  $("bnCellsA").innerHTML = bnrCells(0, st, sets);
+  $("bnCellsB").innerHTML = bnrCells(1, st, sets);
+  $("bnRowA").classList.toggle("serving", st.server === "A");
+  $("bnRowB").classList.toggle("serving", st.server === "B");
+  $("bnWpA").style.width = (st.wp * 100) + "%";
+  $("bnWpB").style.width = (100 - st.wp * 100) + "%";
+  $("bnMeta").textContent = `prob. vittoria ${A} ${(st.wp * 100).toFixed(1)}% \u00b7 ` +
+    `servizio ${(st.srvA * 100).toFixed(1)} / ${(st.srvB * 100).toFixed(1)}` +
+    (m.snap.live ? "" : " \u00b7 feed terminato");
+  $("bnDetail").style.display = bnrOpen ? "" : "none";
+  $("bnTog").innerHTML = bnrOpen ? "&#9650;" : "&#9660;";
+}
+
+$("bnRow").onclick = () => {
+  if ($("bnr").classList.contains("picker")) return;
+  bnrOpen = !bnrOpen;
+  localStorage.setItem("lvzBnrOpen", bnrOpen ? "1" : "0");
+  updateBanner();
+};
+$("bnPick").onclick = ev => ev.stopPropagation();
+$("bnPop").onclick = ev => {
+  ev.stopPropagation();
+  const m = MATCHES["stream"];
+  if (!m) return;
+  window.open(location.pathname + "?mini=1&match=" + m.id, "lvzmini",
+              "popup=yes,width=330,height=240");
+};
+$("bnOpen").onclick = ev => {
+  ev.stopPropagation();
+  selectMatch("stream");
+  idx = cur.points.length; render();
+  // collapse the detail so the full view isn't hidden behind it, and give
+  // the scroll target headroom equal to the (now slim) sticky banner
+  bnrOpen = false;
+  localStorage.setItem("lvzBnrOpen", "0");
+  updateBanner();
+  const board = document.querySelector(".board");
+  board.style.scrollMarginTop = ($("bnr").offsetHeight + 10) + "px";
+  board.scrollIntoView({ behavior: "smooth" });
+};
+
+let boardRows = [];
+
+let selectedLiveId = null;
+
+const ballSvg = c =>
+  `<svg class="ball" viewBox="0 0 20 20" width="14" height="14" aria-hidden="true">` +
+  `<circle cx="10" cy="10" r="9" fill="${c}"/>` +
+  `<path d="M3.5 4.5 a11.5 11.5 0 0 1 0 11 M16.5 4.5 a11.5 11.5 0 0 0 0 11" ` +
+  `fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.4"/></svg>`;
+const BALL_LIVE = "#cbe346", BALL_STOP = "#e5484d";
+
+function boardRowBits(x) {
+  const susp = !!x.event_status;
+  // suspended: keep the time even when future (projected resumption);
+  // in-play: a future time is a reschedule artifact, hide it
+  const when = whenStrGlobal(x.scheduled_time, susp);
+  const txt = `${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ` +
+    `${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}` +
+    (susp ? ` \u00b7 ${(x.event_status || "").toLowerCase()}` : "");
+  let score = "";
+  if (x.games && x.games.length === 2 && x.games[0] && x.games[0].length) {
+    score = x.games[0].map((g, i) => `${g}\u2013${x.games[1][i]}`).join(" ");
+  }
+  return { susp, when, txt, score };
+}
+
+function whenStrGlobal(iso, allowFuture) {
+  if (!iso) return "";
+  const d = new Date(iso), now = new Date();
+  if (d > now && !allowFuture) return "";
+  const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === now.toDateString() ? hm
+    : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
+}
+
+function renderBoardOptions() {
+  const mode = localStorage.getItem("lvzSort") || "tour";
+  const rows = boardRows.slice();
+  if (mode === "time") {
+    rows.sort((a, b) => (a.scheduled_time || "9999") < (b.scheduled_time || "9999") ? -1 : 1);
+  }
+  if (!rows.some(x => x.id === selectedLiveId)) selectedLiveId = rows.length ? rows[0].id : null;
+  $("cselPanel").innerHTML = rows.map(x => {
+    const b = boardRowBits(x);
+    return `<div class="crow${b.susp ? " susp" : ""}" role="option" data-id="${x.id}"` +
+      ` aria-selected="${x.id === selectedLiveId}">` +
+      ballSvg(b.susp ? BALL_STOP : BALL_LIVE) +
+      `<span class="ctime">${b.when}</span><span class="ctxt">${b.txt}</span>` +
+      `<span class="cscore">${b.score}</span></div>`;
+  }).join("");
+  const cur = rows.find(x => x.id === selectedLiveId);
+  $("cselLabel").innerHTML = cur
+    ? ballSvg(boardRowBits(cur).susp ? BALL_STOP : BALL_LIVE) +
+      `<span class="ctxt">${boardRowBits(cur).when ? boardRowBits(cur).when + " \u00b7 " : ""}${boardRowBits(cur).txt}</span>`
+    : "scegli una partita live";
+}
+
+function cselClose() {
+  $("cselPanel").style.display = "none";
+  $("cselBtn").setAttribute("aria-expanded", "false");
+}
+$("cselBtn").onclick = ev => {
+  ev.stopPropagation();
+  const open = $("cselPanel").style.display !== "none";
+  $("cselPanel").style.display = open ? "none" : "";
+  $("cselBtn").setAttribute("aria-expanded", String(!open));
+};
+$("cselPanel").onclick = ev => {
+  const row = ev.target.closest("[data-id]");
+  if (!row) return;
+  ev.stopPropagation();
+  selectedLiveId = +row.dataset.id;
+  renderBoardOptions();
+  cselClose();
+};
+document.addEventListener("click", cselClose);
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") cselClose(); });
+
+async function refreshBoard() {
+  const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
+  const rows = ((await r.json()).matches || [])
+    .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
+  if (rows.length) { boardRows = rows; renderBoardOptions(); }
+  return rows.length;
+}
+
+async function initLive() {
+  if (!SVC) return;  // no public service configured; page stays static
+  try {
+    if (!await refreshBoard()) return;
+    setInterval(() => refreshBoard().catch(() => {}), 60000);
+    const rows = boardRows;
+    renderBoardOptions();
+    $("liveSort").value = localStorage.getItem("lvzSort") || "tour";
+    $("liveSort").onchange = () => {
+      localStorage.setItem("lvzSort", $("liveSort").value);
+      renderBoardOptions();
+    };
+    const bnr = $("bnr");
+    if (!MATCHES["stream"]) bnr.classList.add("picker");
+    bnr.style.display = "";
+    $("liveGo").onclick = () => { if (selectedLiveId) followStream(selectedLiveId); };
+  } catch (e) { /* no local service running: page stays fully static */ }
+}
+/* ---------- pop-out mini player mode ---------- */
+const MINI_PARAMS = new URLSearchParams(location.search);
+const MINI_ID = MINI_PARAMS.get("mini") === "1" ? MINI_PARAMS.get("match") : null;
+const OV_ID = MINI_PARAMS.get("overlay") === "1" ? MINI_PARAMS.get("match") : null;
+const PIP_ID = MINI_ID || OV_ID;
+
+function overlayShell() {
+  const root = document.querySelector(".lvz");
+  root.classList.add("ovl", "pip");
+  document.title = "Overlay \u00b7 Leverage";
+  document.documentElement.style.background = "transparent";
+  document.body.style.background = "transparent";
+  root.innerHTML =
+    `<div class="ovbar">` +
+    `<span class="livedot"></span>` +
+    `<div class="ovrows">` +
+    `<div class="mrow" id="mRowA"><span class="ddot"></span><span class="mname" id="mNameA"></span><span class="mcells" id="mCellsA"></span></div>` +
+    `<div class="mrow" id="mRowB"><span class="ddot"></span><span class="mname" id="mNameB"></span><span class="mcells" id="mCellsB"></span></div>` +
+    `</div>` +
+    `<div class="ovdiv"></div>` +
+    `<div class="ovstat"><span class="lab">PROSSIMO PUNTO</span><span class="mmult" id="mMult"></span></div>` +
+    `<div class="ovstat"><span class="lab" id="mStatus"></span>` +
+    `<div class="mwp"><div class="a" id="mWpA" style="width:50%"></div><div class="b" id="mWpB" style="width:50%"></div></div></div>` +
+    `<div class="ovstat"><span class="ovtour" id="mTour"></span><span class="lab" id="mNote"></span></div>` +
+    `</div>`;
+}
+
+function miniShell() {
+  const root = document.querySelector(".lvz");
+  root.classList.add("mini", "pip");
+  document.title = "LIVE \u00b7 Leverage";
+  root.innerHTML =
+    `<div class="miniwrap">` +
+    `<div class="mtop"><span class="livedot"></span><span id="mTour">\u2026</span>` +
+    `<span class="mmult" id="mMult"></span></div>` +
+    `<div class="mrow" id="mRowA"><span class="ddot"></span><span class="mname" id="mNameA"></span><span class="mcells" id="mCellsA"></span></div>` +
+    `<div class="mrow" id="mRowB"><span class="ddot"></span><span class="mname" id="mNameB"></span><span class="mcells" id="mCellsB"></span></div>` +
+    `<div class="mwp"><div class="a" id="mWpA" style="width:50%"></div><div class="b" id="mWpB" style="width:50%"></div></div>` +
+    `<div class="mfoot"><span id="mStatus"></span><span id="mNote">feed qualche secondo indietro</span></div>` +
+    `</div>`;
+}
+
+function miniCells(k, st, sets) {
+  const cells = sets.map(s => `<span class="c done">${s[k]}</span>`);
+  cells.push(`<span class="c cur">${st.games[k]}</span>`);
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  cells.push(`<span class="c pt">${call[k]}</span>`);
+  return cells.join("");
+}
+
+async function pollMini() {
+  try {
+    const snap = await fetch(`${SVC}/api/match/${PIP_ID}?since=999999999`).then(r => r.json());
+    const st = snap.state, sets = st.set_scores || [];
+    $("mTour").textContent = `${snap.match.tournament || ""} \u00b7 ${snap.live ? "live" : "finita"}`;
+    $("mNameA").textContent = lastName(snap.match.p1 || "?");
+    $("mNameB").textContent = lastName(snap.match.p2 || "?");
+    $("mCellsA").innerHTML = miniCells(0, st, sets);
+    $("mCellsB").innerHTML = miniCells(1, st, sets);
+    $("mRowA").classList.toggle("serving", snap.live && st.server === "A");
+    $("mRowB").classList.toggle("serving", snap.live && st.server === "B");
+    $("mWpA").style.width = (st.wp * 100) + "%";
+    $("mWpB").style.width = (100 - st.wp * 100) + "%";
+    const mult = st.mult_next || 1;
+    $("mMult").textContent = snap.live ? mult.toFixed(1) + "\u00d7" : "finita";
+    $("mMult").style.color = snap.live ? heat(mult) : "var(--ink-3)";
+    $("mStatus").textContent = `prob. vittoria ${lastName(snap.match.p1 || "?")} ${(st.wp * 100).toFixed(1)}%`;
+    $("mNote").textContent = "feed qualche secondo indietro";
+  } catch (e) {
+    $("mNote").textContent = "riconnessione\u2026";
+  }
+}
+
+if (PIP_ID && SVC) {
+  if (MINI_ID) miniShell(); else overlayShell();
+  pollMini();
+  setInterval(pollMini, 5000);
+} else {
+  initLive();
+  selectMatch(Object.keys(MATCHES)[0]);
+}
 </script>
 </body>
 </html>
