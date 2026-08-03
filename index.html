@@ -70,6 +70,7 @@
     border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: inherit;
     flex: 1; min-width: 0; max-width: 360px;
   }
+  .lvz .bnr .bpick select#liveSort { flex: none; width: auto; }
   .lvz .bnr .bpick button {
     background: var(--card-2); color: var(--ink); border: 1px solid var(--heat-1);
     border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer;
@@ -320,6 +321,10 @@
       <span class="bpick" id="bnPick">
         <select id="liveSel" aria-label="Live matches happening now"></select>
         <button id="liveGo">Follow</button>
+        <select id="liveSort" aria-label="Sort live matches">
+          <option value="tour">by tour</option>
+          <option value="time">by time</option>
+        </select>
         <span class="lnote">feed runs seconds behind the court</span>
       </span>
       <span class="bscore" id="bnScore"></span>
@@ -1080,6 +1085,36 @@ $("bnOpen").onclick = ev => {
   board.scrollIntoView({ behavior: "smooth" });
 };
 
+let boardRows = [];
+
+function renderBoardOptions() {
+  const mode = localStorage.getItem("lvzSort") || "tour";
+  const prev = $("liveSel").value;
+  const rows = boardRows.slice();
+  if (mode === "time") {
+    rows.sort((a, b) => (a.scheduled_time || "9999") < (b.scheduled_time || "9999") ? -1 : 1);
+  }
+  const whenStr = iso => {
+    if (!iso) return "";
+    const d = new Date(iso), now = new Date();
+    if (d > now) return "";
+    const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const sameDay = d.toDateString() === now.toDateString();
+    return sameDay ? hm
+      : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
+  };
+  $("liveSel").innerHTML = rows.map(x => {
+    const susp = !!x.event_status;   // e.g. Interrupted: rain, darkness
+    const tag = susp ? ` \u00b7 ${(x.event_status || "suspended").toLowerCase()}` : "";
+    // native macOS/iOS dropdowns ignore option CSS \u2014 a red symbol survives
+    const mark = susp ? "\ud83d\udd34 " : "";
+    const style = susp ? ' style="color:#e5484d"' : "";
+    const when = whenStr(x.scheduled_time);
+    return `<option value="${x.id}"${style}>${mark}${when ? when + " \u00b7 " : ""}${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${tag}</option>`;
+  }).join("");
+  if (prev && rows.some(x => String(x.id) === prev)) $("liveSel").value = prev;
+}
+
 async function initLive() {
   if (!SVC) return;  // no public service configured; page stays static
   try {
@@ -1087,26 +1122,13 @@ async function initLive() {
     const rows = ((await r.json()).matches || [])
       .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
     if (!rows.length) return;
-    const whenStr = iso => {
-      if (!iso) return "";
-      const d = new Date(iso), now = new Date();
-      // a "start time" in the future on an already-live match is a vendor
-      // rescheduling artifact (seen during rain delays) \u2014 say nothing
-      if (d > now) return "";
-      const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const sameDay = d.toDateString() === now.toDateString();
-      return sameDay ? hm
-        : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
+    boardRows = rows;
+    renderBoardOptions();
+    $("liveSort").value = localStorage.getItem("lvzSort") || "tour";
+    $("liveSort").onchange = () => {
+      localStorage.setItem("lvzSort", $("liveSort").value);
+      renderBoardOptions();
     };
-    $("liveSel").innerHTML = rows.map(x => {
-      const susp = !!x.event_status;   // e.g. Interrupted: rain, darkness
-      const tag = susp ? ` \u00b7 ${(x.event_status || "suspended").toLowerCase()}` : "";
-      // native macOS/iOS dropdowns ignore option CSS — a red symbol survives
-      const mark = susp ? "\uD83D\uDD34 " : "";
-      const style = susp ? ' style="color:#e5484d"' : "";
-      const when = whenStr(x.scheduled_time);
-      return `<option value="${x.id}"${style}>${mark}${when ? when + " \u00b7 " : ""}${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}${tag}</option>`;
-    }).join("");
     const bnr = $("bnr");
     if (!MATCHES["stream"]) bnr.classList.add("picker");
     bnr.style.display = "";
