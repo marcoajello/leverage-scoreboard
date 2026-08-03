@@ -54,9 +54,11 @@
   .lvz .livedot {
     flex: none; color: #e5484d; border: 1px solid #e5484d; border-radius: 4px;
     padding: 2px 6px; font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em;
-    line-height: 1;
+    line-height: 1; animation: lvblink 1.6s steps(1, end) infinite;
   }
   .lvz .livedot::before { content: "LIVE"; }
+  /* hard on/off, no fade: on for ~1s, off for ~0.6s */
+  @keyframes lvblink { 0% { opacity: 1; } 62% { opacity: 0.15; } 100% { opacity: 1; } }
   .lvz .livebar select {
     background: var(--card); color: var(--ink-2); border: 1px solid var(--ring);
     border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; max-width: 340px;
