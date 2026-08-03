@@ -98,6 +98,9 @@
   .lvz .bnr .crow .ball { flex: none; }
   .lvz .bnr .crow .ctime { color: var(--ink-3); font-variant-numeric: tabular-nums; flex: none; min-width: 58px; }
   .lvz .bnr .crow .ctxt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz .bnr .crow .cscore { flex: none; color: var(--ink); font-weight: 700;
+    font-variant-numeric: tabular-nums; font-size: 11.5px; }
+  .lvz .bnr .crow.susp .cscore { color: #e5484d; }
   .lvz .bnr .crow.susp .ctxt { color: #e5484d; }
   .lvz .bnr .bpick button {
     background: var(--card-2); color: var(--ink); border: 1px solid var(--heat-1);
@@ -1137,7 +1140,11 @@ function boardRowBits(x) {
   const txt = `${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ` +
     `${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}` +
     (susp ? ` \u00b7 ${(x.event_status || "").toLowerCase()}` : "");
-  return { susp, when, txt };
+  let score = "";
+  if (x.games && x.games.length === 2 && x.games[0] && x.games[0].length) {
+    score = x.games[0].map((g, i) => `${g}\u2013${x.games[1][i]}`).join(" ");
+  }
+  return { susp, when, txt, score };
 }
 
 function whenStrGlobal(iso, allowFuture) {
@@ -1161,7 +1168,8 @@ function renderBoardOptions() {
     return `<div class="crow${b.susp ? " susp" : ""}" role="option" data-id="${x.id}"` +
       ` aria-selected="${x.id === selectedLiveId}">` +
       ballSvg(b.susp ? BALL_STOP : BALL_LIVE) +
-      `<span class="ctime">${b.when}</span><span class="ctxt">${b.txt}</span></div>`;
+      `<span class="ctime">${b.when}</span><span class="ctxt">${b.txt}</span>` +
+      `<span class="cscore">${b.score}</span></div>`;
   }).join("");
   const cur = rows.find(x => x.id === selectedLiveId);
   $("cselLabel").innerHTML = cur
@@ -1191,14 +1199,20 @@ $("cselPanel").onclick = ev => {
 document.addEventListener("click", cselClose);
 document.addEventListener("keydown", ev => { if (ev.key === "Escape") cselClose(); });
 
+async function refreshBoard() {
+  const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
+  const rows = ((await r.json()).matches || [])
+    .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
+  if (rows.length) { boardRows = rows; renderBoardOptions(); }
+  return rows.length;
+}
+
 async function initLive() {
   if (!SVC) return;  // no public service configured; page stays static
   try {
-    const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
-    const rows = ((await r.json()).matches || [])
-      .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
-    if (!rows.length) return;
-    boardRows = rows;
+    if (!await refreshBoard()) return;
+    setInterval(() => refreshBoard().catch(() => {}), 60000);
+    const rows = boardRows;
     renderBoardOptions();
     $("liveSort").value = localStorage.getItem("lvzSort") || "tour";
     $("liveSort").onchange = () => {
