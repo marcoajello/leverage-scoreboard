@@ -130,31 +130,51 @@
 
   /* ------------- pop-out mini player (?mini=1&match=ID) ------------- */
   .lvz.mini { padding: 10px; min-height: 100vh; display: flex; }
+
+  /* ------------- OBS overlay lower-third (?overlay=1&match=ID) ------------- */
+  .lvz.ovl { background: transparent; padding: 0; min-height: 100vh;
+    display: flex; align-items: flex-end; justify-content: center; }
+  .lvz.ovl .ovbar {
+    display: flex; align-items: center; gap: 18px;
+    background: rgba(26, 26, 25, 0.92); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px; padding: 12px 20px; margin: 0 24px 26px;
+    font-size: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .lvz.ovl .ovrows { display: flex; flex-direction: column; gap: 5px; }
+  .lvz.ovl .mrow { grid-template-columns: 10px auto auto; }
+  .lvz.ovl .mrow .mname { overflow: visible; }
+  .lvz.ovl .ovdiv { width: 1px; height: 44px; background: rgba(255,255,255,0.15); flex: none; }
+  .lvz.ovl .ovstat { display: flex; flex-direction: column; gap: 4px; flex: none; }
+  .lvz.ovl .ovstat .lab { font-size: 9px; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .lvz.ovl .mmult { font-size: 24px; font-weight: 800; }
+  .lvz.ovl .mwp { width: 120px; height: 8px; border-radius: 4px; }
+  .lvz.ovl .ovtour { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3); writing-mode: initial; align-self: flex-start; }
   .lvz.mini .miniwrap {
     flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center;
     background: var(--card); border: 1px solid var(--ring); border-radius: 10px;
     padding: 12px 14px; font-size: 14px;
   }
-  .lvz.mini .mtop { display: flex; align-items: center; gap: 8px; font-size: 10.5px;
+  .lvz.pip .mtop { display: flex; align-items: center; gap: 8px; font-size: 10.5px;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
-  .lvz.mini .mtop .mmult { margin-left: auto; font-weight: 800; font-size: 16px;
+  .lvz.pip .mtop .mmult { margin-left: auto; font-weight: 800; font-size: 16px;
     letter-spacing: 0; text-transform: none; }
-  .lvz.mini .mrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
+  .lvz.pip .mrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
     gap: 8px; font-variant-numeric: tabular-nums; }
-  .lvz.mini .mrow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
-  .lvz.mini .mrow.serving .ddot { visibility: visible; background: var(--heat-3); }
-  .lvz.mini .mrow .mname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lvz.mini .mrow .mcells { display: flex; gap: 4px; }
-  .lvz.mini .mrow .mcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
+  .lvz.pip .mrow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
+  .lvz.pip .mrow.serving .ddot { visibility: visible; background: var(--heat-3); }
+  .lvz.pip .mrow .mname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz.pip .mrow .mcells { display: flex; gap: 4px; }
+  .lvz.pip .mrow .mcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
     border-radius: 3px; font-weight: 700; }
-  .lvz.mini .mrow .mcells .c.done { color: var(--ink-3); font-weight: 600; }
-  .lvz.mini .mrow .mcells .c.cur { background: var(--card-2); }
-  .lvz.mini .mrow .mcells .c.pt { background: var(--card-2); color: var(--heat-3); }
-  .lvz.mini .mwp { display: flex; height: 5px; border-radius: 3px; overflow: hidden;
+  .lvz.pip .mrow .mcells .c.done { color: var(--ink-3); font-weight: 600; }
+  .lvz.pip .mrow .mcells .c.cur { background: var(--card-2); }
+  .lvz.pip .mrow .mcells .c.pt { background: var(--card-2); color: var(--heat-3); }
+  .lvz.pip .mwp { display: flex; height: 5px; border-radius: 3px; overflow: hidden;
     gap: 1px; background: var(--page); }
-  .lvz.mini .mwp .a { background: var(--pA); }
-  .lvz.mini .mwp .b { background: var(--pB); }
-  .lvz.mini .mfoot { font-size: 10.5px; color: var(--ink-3); display: flex;
+  .lvz.pip .mwp .a { background: var(--pA); }
+  .lvz.pip .mwp .b { background: var(--pB); }
+  .lvz.pip .mfoot { font-size: 10.5px; color: var(--ink-3); display: flex;
     justify-content: space-between; gap: 8px; }
   .lvz .tab:focus-visible, .lvz button:focus-visible, .lvz input:focus-visible, .lvz svg:focus-visible
     { outline: 2px solid var(--heat-2); outline-offset: 2px; }
@@ -305,6 +325,7 @@
         <span id="bnMeta"></span>
         <button id="bnOpen">Open full view</button>
         <button id="bnPop">Pop out</button>
+        <button id="bnOv">Overlay</button>
       </div>
     </div>
   </div>
@@ -1034,6 +1055,12 @@ $("bnPop").onclick = ev => {
   window.open(location.pathname + "?mini=1&match=" + m.id, "lvzmini",
               "popup=yes,width=330,height=240");
 };
+$("bnOv").onclick = ev => {
+  ev.stopPropagation();
+  const m = MATCHES["stream"];
+  if (!m) return;
+  window.open(location.pathname + "?overlay=1&match=" + m.id, "_blank");
+};
 $("bnOpen").onclick = ev => {
   ev.stopPropagation();
   selectMatch("stream");
@@ -1077,10 +1104,33 @@ async function initLive() {
 /* ---------- pop-out mini player mode ---------- */
 const MINI_PARAMS = new URLSearchParams(location.search);
 const MINI_ID = MINI_PARAMS.get("mini") === "1" ? MINI_PARAMS.get("match") : null;
+const OV_ID = MINI_PARAMS.get("overlay") === "1" ? MINI_PARAMS.get("match") : null;
+const PIP_ID = MINI_ID || OV_ID;
+
+function overlayShell() {
+  const root = document.querySelector(".lvz");
+  root.classList.add("ovl", "pip");
+  document.title = "Overlay \u00b7 Leverage";
+  document.documentElement.style.background = "transparent";
+  document.body.style.background = "transparent";
+  root.innerHTML =
+    `<div class="ovbar">` +
+    `<span class="livedot"></span>` +
+    `<div class="ovrows">` +
+    `<div class="mrow" id="mRowA"><span class="ddot"></span><span class="mname" id="mNameA"></span><span class="mcells" id="mCellsA"></span></div>` +
+    `<div class="mrow" id="mRowB"><span class="ddot"></span><span class="mname" id="mNameB"></span><span class="mcells" id="mCellsB"></span></div>` +
+    `</div>` +
+    `<div class="ovdiv"></div>` +
+    `<div class="ovstat"><span class="lab">NEXT POINT</span><span class="mmult" id="mMult"></span></div>` +
+    `<div class="ovstat"><span class="lab" id="mStatus"></span>` +
+    `<div class="mwp"><div class="a" id="mWpA" style="width:50%"></div><div class="b" id="mWpB" style="width:50%"></div></div></div>` +
+    `<div class="ovstat"><span class="ovtour" id="mTour"></span><span class="lab" id="mNote"></span></div>` +
+    `</div>`;
+}
 
 function miniShell() {
   const root = document.querySelector(".lvz");
-  root.classList.add("mini");
+  root.classList.add("mini", "pip");
   document.title = "LIVE \u00b7 Leverage";
   root.innerHTML =
     `<div class="miniwrap">` +
@@ -1103,7 +1153,7 @@ function miniCells(k, st, sets) {
 
 async function pollMini() {
   try {
-    const snap = await fetch(`${SVC}/api/match/${MINI_ID}?since=999999999`).then(r => r.json());
+    const snap = await fetch(`${SVC}/api/match/${PIP_ID}?since=999999999`).then(r => r.json());
     const st = snap.state, sets = st.set_scores || [];
     $("mTour").textContent = `${snap.match.tournament || ""} \u00b7 ${snap.live ? "live" : "final"}`;
     $("mNameA").textContent = lastName(snap.match.p1 || "?");
@@ -1124,8 +1174,8 @@ async function pollMini() {
   }
 }
 
-if (MINI_ID && SVC) {
-  miniShell();
+if (PIP_ID && SVC) {
+  if (MINI_ID) miniShell(); else overlayShell();
   pollMini();
   setInterval(pollMini, 5000);
 } else {
