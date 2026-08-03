@@ -54,11 +54,10 @@
   .lvz .livedot {
     flex: none; color: #e5484d; border: 1px solid #e5484d; border-radius: 4px;
     padding: 2px 6px; font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em;
-    line-height: 1; animation: lvblink 1.6s steps(1, end) infinite;
+    line-height: 1;
   }
   .lvz .livedot::before { content: "LIVE"; }
-  /* hard on/off, no fade: on for ~1s, off for ~0.6s */
-  @keyframes lvblink { 0% { opacity: 1; } 62% { opacity: 0.15; } 100% { opacity: 1; } }
+  .lvz .livedot.off { color: var(--ink-3); border-color: var(--ink-3); opacity: 0.55; }
   .lvz .livebar select {
     background: var(--card); color: var(--ink-2); border: 1px solid var(--ring);
     border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; max-width: 340px;
@@ -1092,6 +1091,8 @@ function updateBanner() {
     (m.snap.live ? "" : " \u00b7 feed ended");
   $("bnDetail").style.display = bnrOpen ? "" : "none";
   $("bnTog").innerHTML = bnrOpen ? "&#9650;" : "&#9660;";
+  const dot = document.querySelector("#bnRow .livedot");
+  if (dot) dot.classList.toggle("off", !m.snap.live);
 }
 
 $("bnRow").onclick = () => {
@@ -1293,6 +1294,8 @@ async function pollMini() {
     $("mMult").textContent = snap.live ? mult.toFixed(1) + "\u00d7" : "final";
     $("mMult").style.color = snap.live ? heat(mult) : "var(--ink-3)";
     $("mStatus").textContent = `win prob ${lastName(snap.match.p1 || "?")} ${(st.wp * 100).toFixed(1)}%`;
+    const mdot = document.querySelector(".livedot");
+    if (mdot) mdot.classList.toggle("off", !snap.live);
     $("mNote").textContent = "feed runs seconds behind";
   } catch (e) {
     $("mNote").textContent = "reconnecting\u2026";
