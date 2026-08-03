@@ -25,11 +25,12 @@
     --heat-1:      #c98500;
     --heat-2:      #eda100;
     --heat-3:      #ffc233;
+    --pad: clamp(12px, 3vw, 40px);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--page);
     color: var(--ink);
     min-height: 100vh;
-    padding: clamp(12px, 3vw, 40px);
+    padding: var(--pad);
     box-sizing: border-box;
   }
   .lvz *, .lvz *::before, .lvz *::after { box-sizing: border-box; }
@@ -48,6 +49,65 @@
     font-family: inherit; letter-spacing: 0.02em;
   }
   .lvz .tab[aria-selected="true"] { color: var(--ink); border-color: var(--heat-1); background: var(--card-2); }
+
+  .lvz .livebar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .lvz .livedot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d;
+    animation: lvpulse 1.6s ease-in-out infinite; flex: none; }
+  @keyframes lvpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .lvz .livebar select {
+    background: var(--card); color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; max-width: 340px;
+  }
+  .lvz .livebar button {
+    background: var(--card); color: var(--ink); border: 1px solid var(--heat-1);
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .lvz .livebar .lnote { font-size: 11px; color: var(--ink-3); }
+
+  /* ------------- sticky live banner with drop-down detail ------------- */
+  .lvz .bnr {
+    position: sticky; top: 0; z-index: 60;
+    margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 0;
+    background: var(--card); border-bottom: 1px solid var(--ring);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+    padding: 0 var(--pad);
+  }
+  .lvz .bnr .brow {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 8px 0; font-size: 13px; max-width: 960px; margin: 0 auto;
+  }
+  .lvz .bnr .bscore {
+    flex: 1; min-width: 0; font-weight: 700; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lvz .bnr .bscore .srv { color: var(--heat-3); }
+  .lvz .bnr .bscore .vs { color: var(--ink-3); font-weight: 400; }
+  .lvz .bnr .bmult { font-weight: 800; font-size: 14px; flex: none; }
+  .lvz .bnr .btog { background: none; border: none; color: var(--ink-3); cursor: pointer;
+    font-size: 11px; padding: 2px 4px; font-family: inherit; flex: none; }
+  .lvz .bnr .bdetail { max-width: 960px; margin: 0 auto; padding: 2px 0 10px;
+    display: flex; flex-direction: column; gap: 7px; }
+  .lvz .bnr .drow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center;
+    gap: 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .lvz .bnr .drow .ddot { width: 6px; height: 6px; border-radius: 50%; visibility: hidden; }
+  .lvz .bnr .drow.serving .ddot { visibility: visible; background: var(--heat-3); }
+  .lvz .bnr .drow .dname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvz .bnr .drow .dcells { display: flex; gap: 4px; }
+  .lvz .bnr .drow .dcells .c { min-width: 22px; text-align: center; padding: 1px 4px;
+    border-radius: 3px; font-weight: 700; }
+  .lvz .bnr .drow .dcells .c.done { color: var(--ink-3); font-weight: 600; }
+  .lvz .bnr .drow .dcells .c.cur { background: var(--card-2); }
+  .lvz .bnr .drow .dcells .c.pt { background: var(--card-2); color: var(--heat-3); }
+  .lvz .bnr .dwp { display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+    gap: 1px; background: var(--page); }
+  .lvz .bnr .dwp .a { background: var(--pA); }
+  .lvz .bnr .dwp .b { background: var(--pB); }
+  .lvz .bnr .dmeta { display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; font-size: 11px; color: var(--ink-3); flex-wrap: wrap; }
+  .lvz .bnr .dmeta button {
+    background: var(--card-2); border: 1px solid var(--ring); color: var(--ink);
+    border-radius: 5px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
   .lvz .tab:focus-visible, .lvz button:focus-visible, .lvz input:focus-visible, .lvz svg:focus-visible
     { outline: 2px solid var(--heat-2); outline-offset: 2px; }
 
@@ -177,6 +237,23 @@
 </style>
 
 <div class="lvz">
+  <div class="bnr" id="bnr" style="display:none">
+    <div class="brow" id="bnRow">
+      <span class="livedot" aria-hidden="true"></span>
+      <span class="bscore" id="bnScore"></span>
+      <span class="bmult" id="bnMult"></span>
+      <button class="btog" id="bnTog" aria-label="Expand or collapse live detail">&#9662;</button>
+    </div>
+    <div class="bdetail" id="bnDetail" style="display:none">
+      <div class="drow" id="bnRowA"><span class="ddot"></span><span class="dname" id="bnNameA"></span><span class="dcells" id="bnCellsA"></span></div>
+      <div class="drow" id="bnRowB"><span class="ddot"></span><span class="dname" id="bnNameB"></span><span class="dcells" id="bnCellsB"></span></div>
+      <div class="dwp"><div class="a" id="bnWpA" style="width:50%"></div><div class="b" id="bnWpB" style="width:50%"></div></div>
+      <div class="dmeta">
+        <span id="bnMeta"></span>
+        <button id="bnOpen">Open full view</button>
+      </div>
+    </div>
+  </div>
   <div class="wrap">
     <div class="masthead">
       <div class="wordmark"><span class="lv">LEVER</span>AGE&nbsp;SCOREBOARD</div>
@@ -219,6 +296,12 @@
       </div>
     </div>
 
+    <div class="livebar" id="livebar" style="display:none">
+      <span class="livedot" aria-hidden="true"></span>
+      <select id="liveSel" aria-label="Live matches happening now"></select>
+      <button id="liveGo">Follow live</button>
+      <span class="lnote" id="liveNote">happening now &#183; feed runs seconds behind the court</span>
+    </div>
     <div class="tabs" role="tablist" id="tabs"></div>
 
     <div class="board">
@@ -383,9 +466,11 @@ function selectMatch(id) {
   $("levLegend").innerHTML =
     `<span class="k"><span class="sw" style="background:var(--pA)"></span>point won by ${lastName(cur.playerA)}</span>` +
     `<span class="k"><span class="sw" style="background:var(--pB)"></span>point won by ${lastName(cur.playerB)}</span>`;
-  $("wpLegend").innerHTML =
-    `<span class="k"><span class="sw" style="background:var(--pA)"></span>live model \u2014 career priors, learns in play</span>` +
-    `<span class="k"><span class="sw" style="background:var(--ink-3)"></span>hindsight \u2014 whole-match serve stats</span>`;
+  $("wpLegend").innerHTML = cur.stream
+    ? `<span class="k"><span class="sw" style="background:var(--pA)"></span>live model \u2014 Elo priors, learns in play</span>` +
+      `<span class="k">hindsight line hidden \u2014 whole-match stats don\u2019t exist mid-match \u00b7 live data: Live Tennis API</span>`
+    : `<span class="k"><span class="sw" style="background:var(--pA)"></span>live model \u2014 career priors, learns in play</span>` +
+      `<span class="k"><span class="sw" style="background:var(--ink-3)"></span>hindsight \u2014 whole-match serve stats</span>`;
   buildCharts();
   buildBigPoints();
   render();
@@ -519,6 +604,7 @@ function stateAt(i) { return i < cur.points.length ? cur.points[i] : null; }
 
 function render() {
   if (cur.live) { renderLive(); return; }
+  if (cur.stream && idx >= cur.points.length && !cur.winner) { renderStreamEdge(); return; }
   const N = cur.points.length;
   const p = stateAt(idx);
   const over = !p;
@@ -588,9 +674,12 @@ function buildCharts() {
   const yW = v => PAD.t + (HW - PAD.t - PAD.b) * (1 - v);
   let g = gridSvg(HW, [[yW(1), "100%"], [yW(0.5), "50%"], [yW(0), "0%"]], setEnds, N);
   g += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${yW(0.5)}" y2="${yW(0.5)}" stroke="#4a4a46" stroke-dasharray="4 4" stroke-width="1"/>`;
-  const pts = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.wp).toFixed(1)}`).join(" ");
   const ptsB = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.b.wp).toFixed(1)}`).join(" ");
-  g += `<polyline points="${pts}" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
+  if (!cur.stream) {
+    /* hindsight line needs whole-match stats, which don't exist mid-match */
+    const pts = cur.points.map((p, i) => `${xScale(i, N).toFixed(1)},${yW(p.wp).toFixed(1)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
+  }
   g += `<polyline points="${ptsB}" fill="none" stroke="var(--pA)" stroke-width="2" stroke-linejoin="round"/>`;
   g += `<rect id="wpDim" x="0" y="0" width="0" height="${HW}" fill="#0d0d0d" opacity="0.55"/>`;
   g += `<line id="wpMark" y1="${PAD.t}" y2="${HW - PAD.b}" stroke="var(--heat-2)" stroke-width="1.5"/>`;
@@ -649,7 +738,8 @@ for (const cid of ["wpChart", "levChart", "spChart"]) {
     const call = (p.tb ? "TB " : "") + callStr(p);
     t.innerHTML = `<strong>Point ${i + 1}</strong> \u00b7 set ${p.sets[0] + p.sets[1] + 1}, ${p.games[0]}\u2013${p.games[1]}, ${call}<br>` +
       `worth <strong>${p.b.mult.toFixed(1)}\u00d7</strong> (LEV ${p.b.lev.toFixed(3)}) \u00b7 won by <strong>${lastName(p.winner === "A" ? cur.playerA : cur.playerB)}</strong><br>` +
-      `${lastName(cur.playerA)} win prob before: <strong>${Math.round(p.b.wp * 100)}%</strong> live \u00b7 ${Math.round(p.wp * 100)}% hindsight` +
+      `${lastName(cur.playerA)} win prob before: <strong>${Math.round(p.b.wp * 100)}%</strong> live` +
+      (cur.stream ? "" : ` \u00b7 ${Math.round(p.wp * 100)}% hindsight`) +
       (p.eff ? `<br>rally ${p.eff.rally} \u00b7 ${Math.round(p.eff.d1 + p.eff.d2)}m run \u00b7 serve ${p.eff.spd} km/h \u00b7 ${p.eff.t}` : "");
     t.style.display = "block";
     t.style.left = Math.min(ev.clientX + 14, window.innerWidth - 260) + "px";
@@ -699,8 +789,205 @@ $("stepBack").onclick = () => { stopPlay(); idx = Math.max(0, idx - 1); render()
 $("stepFwd").onclick = () => { stopPlay(); idx = Math.min(cur.points.length, idx + 1); render(); };
 $("scrub").oninput = ev => { stopPlay(); idx = +ev.target.value; render(); };
 
+/* ---------- live stream (local ingestion service on :8742) ---------- */
+const SVC = (location.protocol === "file:" ? "http://localhost"
+            : location.protocol + "//" + location.hostname) + ":8742";
+let streamTimer = null, streamEntries = [];
+
+function stCall(s) {
+  if (s.tb) return [String(s.p[0]), String(s.p[1])];
+  const C = ["0", "15", "30", "40", "Ad"];
+  return [C[Math.min(s.p[0], 4)], C[Math.min(s.p[1], 4)]];
+}
+
+function rebuildStream(snap) {
+  const m = MATCHES["stream"];
+  const pts = [];
+  let prevSt = null, prevWp = snap.match.wp0, share = { A: 0, B: 0 }, gaps = 0;
+  for (const e of streamEntries) {
+    if (e.type !== "point") { prevSt = e.st; prevWp = e.wp; gaps++; continue; }
+    if (!prevSt) {
+      if (e.st.s[0] + e.st.s[1] === 0 && e.st.g[0] + e.st.g[1] === 0
+          && e.st.p[0] + e.st.p[1] === 1)
+        prevSt = { s: [0, 0], g: [0, 0], p: [0, 0], srv: e.st.srv, tb: false };
+      else { prevSt = e.st; prevWp = e.wp; continue; }
+    }
+    share[e.w] += e.lev;
+    const tot = share.A + share.B || 1;
+    pts.push({
+      sets: prevSt.s, games: prevSt.g, pts: stCall(prevSt), tb: prevSt.tb,
+      server: prevSt.srv, winner: e.w,
+      b: { wp: prevWp, lev: e.lev, mult: 0,
+           levShare: Math.round(100 * share.A / tot), pA: e.srvA, pB: e.srvB },
+    });
+    prevSt = e.st; prevWp = e.wp;
+  }
+  const mean = pts.length ? pts.reduce((s, p) => s + p.b.lev, 0) / pts.length : 0;
+  for (const p of pts) p.b.mult = mean > 0 ? p.b.lev / mean : 1;
+  m.points = pts; m.meanLev = mean; m.snap = snap; m.gaps = gaps;
+  m.sets = (snap.state && snap.state.set_scores) || [];
+  m.playerA = snap.match.p1 || "P1"; m.playerB = snap.match.p2 || "P2";
+  m.priors = [snap.match.priors.p_a, snap.match.priors.p_b];
+  m.winner = null;
+  if (!snap.live && snap.state) {
+    const need = snap.match.format === "BO5" ? 3 : 2;
+    if (snap.state.sets[0] >= need) m.winner = "A";
+    else if (snap.state.sets[1] >= need) m.winner = "B";
+    m.score = m.sets.map(s => `${s[0]}\u2013${s[1]}`).join(" ");
+    const tot = share.A + share.B || 1;
+    m.finalLevBayes = [Math.round(100 * share.A / tot),
+                       Math.round(100 * share.B / tot)];
+  }
+}
+
+function renderStreamEdge() {
+  const st = cur.snap.state, N = cur.points.length;
+  for (const [k, row] of [[0, "A"], [1, "B"]]) {
+    const cells = [];
+    for (let s = 0; s < cur.sets.length; s++)
+      cells.push(`<span class="cell set-done">${cur.sets[s][k]}</span>`);
+    cells.push(`<span class="cell games">${st.games[k]}</span>`);
+    cells.push(`<span class="cell pts">${stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts })[k]}</span>`);
+    $("digits" + row).innerHTML = cells.join("");
+  }
+  $("rowA").classList.toggle("serving", st.server === "A");
+  $("rowB").classList.toggle("serving", st.server === "B");
+  const mult = cur.meanLev > 0 ? st.lev_next / cur.meanLev : 1;
+  const pv = $("pvMult");
+  pv.textContent = mult.toFixed(1) + "\u00d7";
+  pv.style.color = heat(mult);
+  pv.classList.toggle("hot", mult >= 6);
+  const share = N ? cur.points[N - 1].b.levShare : 50;
+  $("levA").style.width = share + "%";
+  $("levB").style.width = (100 - share) + "%";
+  $("levNumA").textContent = Math.round(share);
+  $("levNumB").textContent = Math.round(100 - share);
+  const wp = Math.round(st.wp * 100);
+  $("wpline").innerHTML = `Match win probability: <strong>${wp}%</strong> ${lastName(cur.playerA)} \u00b7 <strong>${100 - wp}%</strong> ${lastName(cur.playerB)}`;
+  $("formline").innerHTML = `Serve form (live estimate): ${lastName(cur.playerA)} <strong>${(st.srvA * 100).toFixed(1)}%</strong> \u00b7 ${lastName(cur.playerB)} <strong>${(st.srvB * 100).toFixed(1)}%</strong> (Elo priors ${(cur.priors[0] * 100).toFixed(1)} / ${(cur.priors[1] * 100).toFixed(1)})`;
+  $("callline").innerHTML = `<strong>LIVE</strong> \u00b7 ${cur.snap.live ? "updating" : "feed ended"}${cur.gaps ? ` \u00b7 ${cur.gaps} feed gap${cur.gaps > 1 ? "s" : ""}` : ""}`;
+  $("ptcount").textContent = `point ${N} / ${N} \u00b7 live`;
+  $("scrub").value = N;
+  updateMarkers();
+}
+
+function ensureStreamTab() {
+  let b = document.getElementById("tab-stream");
+  if (!b) {
+    b = document.createElement("button");
+    b.className = "tab"; b.role = "tab"; b.id = "tab-stream";
+    b.onclick = () => selectMatch("stream");
+    tabsEl.insertBefore(b, tabsEl.firstChild);   // live before historical
+  }
+  b.textContent = MATCHES["stream"].label;
+}
+
+async function followStream(id) {
+  const full = await fetch(`${SVC}/api/match/${id}`).then(r => r.json());
+  streamEntries = full.points || [];
+  MATCHES["stream"] = MATCHES["stream"] || {};
+  const m = MATCHES["stream"];
+  m.stream = true; m.live = false; m.id = id;
+  m.label = "LIVE \u00b7 " + lastName(full.match.p1 || "?") + " v " + lastName(full.match.p2 || "?");
+  rebuildStream(full);
+  updateBanner();
+  ensureStreamTab();
+  selectMatch("stream");
+  idx = cur.points.length;
+  render();
+  clearInterval(streamTimer);
+  streamTimer = setInterval(pollStream, 5000);
+}
+
+async function pollStream() {
+  const m = MATCHES["stream"];
+  if (!m) return;
+  try {
+    const snap = await fetch(`${SVC}/api/match/${m.id}?since=${streamEntries.length}`).then(r => r.json());
+    if (snap.n < streamEntries.length) streamEntries = [];
+    for (const e of snap.points || []) if (e.i >= streamEntries.length) streamEntries.push(e);
+    const wasAtEnd = idx >= m.points.length;
+    rebuildStream(snap);
+    if (cur === m) {
+      $("scrub").max = m.points.length;
+      if (wasAtEnd) idx = m.points.length;
+      buildCharts(); buildBigPoints(); render();
+    }
+    updateBanner();
+    if (!snap.live) { clearInterval(streamTimer); streamTimer = null; }
+  } catch (e) { /* transient fetch failure; next tick retries */ }
+}
+
+/* ---------- sticky live banner ---------- */
+let bnrOpen = localStorage.getItem("lvzBnrOpen") === "1";
+
+function bnrCells(k, st, sets) {
+  const cells = sets.map(s => `<span class="c done">${s[k]}</span>`);
+  cells.push(`<span class="c cur">${st.games[k]}</span>`);
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  cells.push(`<span class="c pt">${call[k]}</span>`);
+  return cells.join("");
+}
+
+function updateBanner() {
+  const m = MATCHES["stream"];
+  const bnr = $("bnr");
+  if (!m || !m.snap) { bnr.style.display = "none"; return; }
+  const st = m.snap.state, sets = m.sets || [];
+  bnr.style.display = "";
+  const A = lastName(m.playerA), B = lastName(m.playerB);
+  const setsStr = sets.map(s => `${s[0]}\u2013${s[1]}`).join(" ");
+  const call = stCall({ tb: st.games[0] === 6 && st.games[1] === 6, p: st.pts });
+  const srvA = st.server === "A";
+  $("bnScore").innerHTML =
+    `<span class="${srvA ? "srv" : ""}">${A}</span> <span class="vs">v</span> ` +
+    `<span class="${srvA ? "" : "srv"}">${B}</span>&ensp;` +
+    `<span class="vs">${setsStr}${setsStr ? " \u00b7 " : ""}${st.games[0]}\u2013${st.games[1]} ${call[0]}\u2013${call[1]}</span>`;
+  const mult = m.meanLev > 0 ? st.lev_next / m.meanLev : 1;
+  $("bnMult").textContent = m.snap.live ? mult.toFixed(1) + "\u00d7" : "final";
+  $("bnMult").style.color = m.snap.live ? heat(mult) : "var(--ink-3)";
+  /* detail */
+  $("bnNameA").textContent = A; $("bnNameB").textContent = B;
+  $("bnCellsA").innerHTML = bnrCells(0, st, sets);
+  $("bnCellsB").innerHTML = bnrCells(1, st, sets);
+  $("bnRowA").classList.toggle("serving", st.server === "A");
+  $("bnRowB").classList.toggle("serving", st.server === "B");
+  $("bnWpA").style.width = (st.wp * 100) + "%";
+  $("bnWpB").style.width = (100 - st.wp * 100) + "%";
+  $("bnMeta").textContent = `win prob ${A} ${(st.wp * 100).toFixed(1)}% \u00b7 ` +
+    `serve form ${(st.srvA * 100).toFixed(1)} / ${(st.srvB * 100).toFixed(1)}` +
+    (m.snap.live ? "" : " \u00b7 feed ended");
+  $("bnDetail").style.display = bnrOpen ? "" : "none";
+  $("bnTog").innerHTML = bnrOpen ? "&#9652;" : "&#9662;";
+}
+
+$("bnRow").onclick = () => {
+  bnrOpen = !bnrOpen;
+  localStorage.setItem("lvzBnrOpen", bnrOpen ? "1" : "0");
+  updateBanner();
+};
+$("bnOpen").onclick = ev => {
+  ev.stopPropagation();
+  selectMatch("stream");
+  idx = cur.points.length; render();
+  document.querySelector(".board").scrollIntoView({ behavior: "smooth" });
+};
+
+async function initLive() {
+  try {
+    const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
+    const rows = ((await r.json()).matches || [])
+      .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
+    if (!rows.length) return;
+    $("liveSel").innerHTML = rows.map(x =>
+      `<option value="${x.id}">${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}</option>`).join("");
+    $("livebar").style.display = "";
+    $("liveGo").onclick = () => followStream(+$("liveSel").value);
+  } catch (e) { /* no local service running: page stays fully static */ }
+}
+initLive();
+
 selectMatch(Object.keys(MATCHES)[0]);
 </script>
-
 </body>
 </html>
