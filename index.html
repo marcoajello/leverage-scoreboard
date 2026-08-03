@@ -1131,17 +1131,19 @@ const BALL_LIVE = "#cbe346", BALL_STOP = "#e5484d";
 
 function boardRowBits(x) {
   const susp = !!x.event_status;
-  const when = whenStrGlobal(x.scheduled_time);
+  // suspended: keep the time even when future (projected resumption);
+  // in-play: a future time is a reschedule artifact, hide it
+  const when = whenStrGlobal(x.scheduled_time, susp);
   const txt = `${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ` +
     `${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}` +
     (susp ? ` \u00b7 ${(x.event_status || "").toLowerCase()}` : "");
   return { susp, when, txt };
 }
 
-function whenStrGlobal(iso) {
+function whenStrGlobal(iso, allowFuture) {
   if (!iso) return "";
   const d = new Date(iso), now = new Date();
-  if (d > now) return "";
+  if (d > now && !allowFuture) return "";
   const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return d.toDateString() === now.toDateString() ? hm
     : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
