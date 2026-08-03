@@ -519,17 +519,21 @@
 
     <footer>
       Leva (leverage) = la differenza di probabilit&#224; di vincere la partita tra vincere e
-      perdere il punto che sta per essere giocato (Morris, 1977), calcolata in modo esatto
-      con un modello di Markov gerarchico del punteggio &#8212; nessuna simulazione, nessuna
-      previsione oltre alla forza al servizio dei due giocatori. Il punteggio pesato per la
-      leva accredita a ciascun giocatore la leva dei punti che ha effettivamente vinto.
-      Sequenze punto per punto dal dataset di Jeff Sackmann (CC BY-NC-SA, uso di ricerca
-      non commerciale). Due modelli corrono in parallelo: il modello <em>live</em> parte dalle statistiche al
-      servizio dei due anni precedenti e aggiorna una stima bayesiana a ogni punto giocato
-      (regolarizzazione k = 100) &#8212; non sa nulla che il pubblico non sapesse; il modello
-      <em>a posteriori</em> usa le statistiche dell'intera partita, mostrato tratteggiato per
-      confronto. Tabellone, valore dei punti e punteggio pesato usano il modello live.
-      Prototipo &#8212; non affiliato ad alcun circuito o emittente.
+      perdere il punto che sta per essere giocato (Morris, 1977), calcolata in modo esatto con
+      un modello di Markov gerarchico del punteggio &#8212; nessuna simulazione, nessuna previsione
+      oltre alla forza al servizio dei due giocatori. Il punteggio pesato per la leva accredita
+      a ciascun giocatore la leva dei punti che ha effettivamente vinto. I replay storici usano
+      le sequenze punto per punto del dataset di Jeff Sackmann (CC BY-NC-SA, uso di ricerca non
+      commerciale); le partite live arrivano dalla Live Tennis API (licenza commerciale)
+      attraverso il nostro servizio, qualche secondo dietro al campo. Due modelli corrono in
+      parallelo: il modello <em>live</em> parte dalle statistiche al servizio dei due anni
+      precedenti &#8212; o, nelle partite live, dai rating Elo attuali per superficie &#8212; e
+      aggiorna una stima bayesiana a ogni punto giocato (regolarizzazione k = 100); non sa
+      nulla che il pubblico non sapesse. Il modello <em>a posteriori</em> usa le statistiche
+      dell'intera partita, mostrato tratteggiato per confronto e nascosto durante il live,
+      dove le statistiche dell'intera partita non esistono ancora. Tabellone, valore dei punti
+      e punteggio pesato usano il modello live. Prototipo &#8212; non affiliato ad alcun
+      circuito o emittente.
     </footer>
   </div>
   <div class="tooltip" id="tooltip"></div>

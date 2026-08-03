@@ -521,14 +521,18 @@
       the point about to be played (Morris 1977), computed exactly from a hierarchical
       Markov model of the score &#8212; no simulation, no forecasting beyond each player's
       serve-point strength. The leverage-weighted score credits each player with the
-      leverage of the points they actually won. Point sequences from Jeff Sackmann's
-      point-by-point dataset (CC BY-NC-SA, non-commercial research use). Two models run
-      side by side: the <em>live</em> model starts from each player&#8217;s serve stats over
-      the two years before the match and updates a Bayesian estimate with every point served
-      (shrinkage k = 100) &#8212; it knows nothing the crowd didn&#8217;t; the <em>hindsight</em>
-      model uses whole-match serve stats, shown dashed for comparison. The scoreboard, point
-      values and leverage-weighted score all use the live model. Prototype &#8212;
-      not affiliated with any tour or broadcaster.
+      leverage of the points they actually won. Historical replays use point sequences
+      from Jeff Sackmann's point-by-point dataset (CC BY-NC-SA, non-commercial research
+      use); live matches stream from the Live Tennis API (commercially licensed) through
+      our own ingestion service, seconds behind the court. Two models run side by side:
+      the <em>live</em> model starts from each player&#8217;s serve stats over the two years
+      before the match &#8212; or, on live matches, from current surface-specific Elo
+      ratings &#8212; and updates a Bayesian estimate with every point served (shrinkage
+      k = 100); it knows nothing the crowd didn&#8217;t. The <em>hindsight</em> model uses
+      whole-match serve stats, shown dashed for comparison and hidden during live play,
+      where whole-match stats don&#8217;t exist yet. The scoreboard, point values and
+      leverage-weighted score all use the live model. Prototype &#8212; not affiliated
+      with any tour or broadcaster.
     </footer>
   </div>
   <div class="tooltip" id="tooltip"></div>
