@@ -64,6 +64,23 @@
   }
   .lvz .livebar .lnote { font-size: 11px; color: var(--ink-3); }
 
+  .lvz .bnr .bpick { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .lvz .bnr .bpick select {
+    background: var(--card-2); color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: inherit;
+    flex: 1; min-width: 0; max-width: 360px;
+  }
+  .lvz .bnr .bpick button {
+    background: var(--card-2); color: var(--ink); border: 1px solid var(--heat-1);
+    border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    font-family: inherit; flex: none;
+  }
+  .lvz .bnr .bpick .lnote { font-size: 10.5px; color: var(--ink-3); flex: none; }
+  @media (max-width: 640px) { .lvz .bnr .bpick .lnote { display: none; } }
+  .lvz .bnr.picker .bscore, .lvz .bnr.picker .bmult, .lvz .bnr.picker .btog { display: none; }
+  .lvz .bnr:not(.picker) .brow > .bpick { display: none; }
+  .lvz .bnr .bdetail .bpick { padding-top: 2px; }
+
   /* ------------- sticky live banner with drop-down detail ------------- */
   .lvz .bnr {
     position: sticky; top: 0; z-index: 60;
@@ -240,6 +257,11 @@
   <div class="bnr" id="bnr" style="display:none">
     <div class="brow" id="bnRow">
       <span class="livedot" aria-hidden="true"></span>
+      <span class="bpick" id="bnPick">
+        <select id="liveSel" aria-label="Live matches happening now"></select>
+        <button id="liveGo">Follow</button>
+        <span class="lnote">feed runs seconds behind the court</span>
+      </span>
       <span class="bscore" id="bnScore"></span>
       <span class="bmult" id="bnMult"></span>
       <button class="btog" id="bnTog" aria-label="Expand or collapse live detail">&#9662;</button>
@@ -296,12 +318,6 @@
       </div>
     </div>
 
-    <div class="livebar" id="livebar" style="display:none">
-      <span class="livedot" aria-hidden="true"></span>
-      <select id="liveSel" aria-label="Live matches happening now"></select>
-      <button id="liveGo">Follow live</button>
-      <span class="lnote" id="liveNote">happening now &#183; feed runs seconds behind the court</span>
-    </div>
     <div class="tabs" role="tablist" id="tabs"></div>
 
     <div class="board">
@@ -890,6 +906,7 @@ async function followStream(id) {
   m.stream = true; m.live = false; m.id = id;
   m.label = "LIVE \u00b7 " + lastName(full.match.p1 || "?") + " v " + lastName(full.match.p2 || "?");
   rebuildStream(full);
+  $("bnDetail").insertBefore($("bnPick"), $("bnDetail").querySelector(".dmeta"));
   updateBanner();
   ensureStreamTab();
   selectMatch("stream");
@@ -932,7 +949,11 @@ function bnrCells(k, st, sets) {
 function updateBanner() {
   const m = MATCHES["stream"];
   const bnr = $("bnr");
-  if (!m || !m.snap) { bnr.style.display = "none"; return; }
+  if (!m || !m.snap) {
+    if (!bnr.classList.contains("picker")) bnr.style.display = "none";
+    return;
+  }
+  bnr.classList.remove("picker");
   const st = m.snap.state, sets = m.sets || [];
   bnr.style.display = "";
   const A = lastName(m.playerA), B = lastName(m.playerB);
@@ -962,10 +983,12 @@ function updateBanner() {
 }
 
 $("bnRow").onclick = () => {
+  if ($("bnr").classList.contains("picker")) return;
   bnrOpen = !bnrOpen;
   localStorage.setItem("lvzBnrOpen", bnrOpen ? "1" : "0");
   updateBanner();
 };
+$("bnPick").onclick = ev => ev.stopPropagation();
 $("bnOpen").onclick = ev => {
   ev.stopPropagation();
   selectMatch("stream");
@@ -981,7 +1004,9 @@ async function initLive() {
     if (!rows.length) return;
     $("liveSel").innerHTML = rows.map(x =>
       `<option value="${x.id}">${(x.tour || "").toUpperCase()} ${x.tournament || ""} \u2014 ${lastName(x.p1 || "?")} v ${lastName(x.p2 || "?")}</option>`).join("");
-    $("livebar").style.display = "";
+    const bnr = $("bnr");
+    if (!MATCHES["stream"]) bnr.classList.add("picker");
+    bnr.style.display = "";
     $("liveGo").onclick = () => followStream(+$("liveSel").value);
   } catch (e) { /* no local service running: page stays fully static */ }
 }
