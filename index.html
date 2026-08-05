@@ -109,6 +109,15 @@
   }
   .lvz .bnr .bpick .lnote { font-size: 10.5px; color: var(--ink-3); flex: none; }
   @media (max-width: 640px) { .lvz .bnr .bpick .lnote { display: none; } }
+  /* board freshness: never let a stale list pass for a live one. Unlike
+     .lnote this stays visible on narrow screens -- it is a warning, not a
+     footnote. */
+  .lvz .bnr .bpick .bstat {
+    font-size: 10.5px; color: var(--ink-3); flex: none; white-space: nowrap;
+    border: 1px solid var(--ring); border-radius: 999px; padding: 2px 8px;
+  }
+  .lvz .bnr .bpick .bstat[hidden] { display: none; }
+  .lvz .bnr .bpick .bstat.warn { color: #e5484d; border-color: #e5484d; }
   .lvz .bnr.picker .bscore, .lvz .bnr.picker .bmult, .lvz .bnr.picker .btog { display: none; }
   .lvz .bnr:not(.picker) .brow > .bpick { display: none; }
   .lvz .bnr .bdetail .bpick { padding-top: 2px; }
@@ -361,6 +370,7 @@
           <option value="tour">by tour</option>
           <option value="time">by time</option>
         </select>
+        <span class="bstat" id="bnStat" hidden></span>
         <span class="lnote">feed runs seconds behind the court</span>
       </span>
       <span class="bscore" id="bnScore"></span>
@@ -1129,6 +1139,9 @@ $("bnOpen").onclick = ev => {
 };
 
 let boardRows = [];
+let boardAt = 0;          // ms of the last SUCCESSFUL board fetch
+let boardErr = null;      // message of the last failed refresh, null when healthy
+let pickerReady = false;
 
 let selectedLiveId = null;
 
@@ -1164,6 +1177,7 @@ function whenStrGlobal(iso, allowFuture) {
 }
 
 function renderBoardOptions() {
+  if (!$("cselPanel")) return;   // pop-out shells replace the picker markup
   const mode = localStorage.getItem("lvzSort") || "tour";
   const rows = boardRows.slice();
   if (mode === "time") {
@@ -1206,31 +1220,94 @@ $("cselPanel").onclick = ev => {
 document.addEventListener("click", cselClose);
 document.addEventListener("keydown", ev => { if (ev.key === "Escape") cselClose(); });
 
-async function refreshBoard() {
-  const r = await fetch(SVC + "/api/live", { signal: AbortSignal.timeout(4000) });
-  const rows = ((await r.json()).matches || [])
-    .filter(x => ["atp", "wta", "challenger"].includes(x.tour));
-  if (rows.length) { boardRows = rows; renderBoardOptions(); }
-  return rows.length;
+const BOARD_REFRESH_MS = 60000;
+// Drop only what we deliberately don't show. The vendor's tour label is not
+// a fixed vocabulary ("atp", "atp1000", "ATP Masters 1000"), so an allowlist
+// of exact strings silently swallowed Masters matches; anything unrecognised
+// is now kept and simply sorts last.
+const BOARD_SKIP = /itf|futures/;
+const isBoardTour = x => !BOARD_SKIP.test(String(x.tour || "").toLowerCase());
+
+function hhmm(ms) {
+  return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function renderBoardStatus() {
+  const el = $("bnStat");
+  if (!el) return;
+  let txt = "", warn = false;
+  if (boardErr) {
+    warn = true;
+    txt = boardAt ? "offline - board frozen at " + hhmm(boardAt)
+                  : "live board unavailable";
+  } else if (!boardRows.length) {
+    txt = "no live matches right now";
+  }
+  el.textContent = txt;
+  el.hidden = !txt;
+  el.classList.toggle("warn", warn);
+}
+
+let boardInFlight = null;
+
+// The interval tick and a tab-focus refresh can overlap; without this the
+// slower response wins and can overwrite fresh data with older data.
+function refreshBoard() {
+  if (!boardInFlight) {
+    boardInFlight = doRefreshBoard().finally(() => { boardInFlight = null; });
+  }
+  return boardInFlight;
+}
+
+async function doRefreshBoard() {
+  try {
+    // cache-bust: the service sends no cache headers, and a heuristically
+    // cached 200 would freeze the board without anything looking wrong
+    const r = await fetch(SVC + "/api/live?_=" + Date.now(),
+      { cache: "no-store", signal: AbortSignal.timeout(4000) });
+    if (!r.ok) throw new Error("service " + r.status);
+    const body = await r.json();
+    if (body.error) throw new Error(body.error);
+    // a successful fetch is the truth, empty included: never keep a list the
+    // service no longer reports
+    boardRows = (body.matches || []).filter(isBoardTour);
+    boardAt = Date.now();
+    boardErr = null;
+    if (boardRows.length) showPicker();
+  } catch (e) {
+    // keep the last rows on screen, but say plainly that they are frozen
+    boardErr = e && e.message ? e.message : String(e);
+  }
+  renderBoardOptions();
+  renderBoardStatus();
+  return !boardErr && boardRows.length;
+}
+
+function showPicker() {
+  if (pickerReady) return;
+  pickerReady = true;
+  $("liveSort").value = localStorage.getItem("lvzSort") || "tour";
+  $("liveSort").onchange = () => {
+    localStorage.setItem("lvzSort", $("liveSort").value);
+    renderBoardOptions();
+  };
+  const bnr = $("bnr");
+  if (!MATCHES["stream"]) bnr.classList.add("picker");
+  bnr.style.display = "";
+  $("liveGo").onclick = () => { if (selectedLiveId) followStream(selectedLiveId); };
 }
 
 async function initLive() {
   if (!SVC) return;  // no public service configured; page stays static
-  try {
-    if (!await refreshBoard()) return;
-    setInterval(() => refreshBoard().catch(() => {}), 60000);
-    const rows = boardRows;
-    renderBoardOptions();
-    $("liveSort").value = localStorage.getItem("lvzSort") || "tour";
-    $("liveSort").onchange = () => {
-      localStorage.setItem("lvzSort", $("liveSort").value);
-      renderBoardOptions();
-    };
-    const bnr = $("bnr");
-    if (!MATCHES["stream"]) bnr.classList.add("picker");
-    bnr.style.display = "";
-    $("liveGo").onclick = () => { if (selectedLiveId) followStream(selectedLiveId); };
-  } catch (e) { /* no local service running: page stays fully static */ }
+  await refreshBoard();
+  // poll unconditionally: the first fetch failing (service asleep) or coming
+  // back empty (play not started) must not strand the page on a static
+  // snapshot until someone reloads it
+  setInterval(refreshBoard, BOARD_REFRESH_MS);
+  // background tabs get their timers throttled; catch up on return
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshBoard();
+  });
 }
 /* ---------- pop-out mini player mode ---------- */
 const MINI_PARAMS = new URLSearchParams(location.search);
